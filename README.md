@@ -4,7 +4,7 @@
 
 This Chrome browser extension accomplishes three things: 
 1. Allows the user to set a job title they're interested in.
-2. Once launched in someone's connection list, checks whether anyone works at companies that are hiring for the desired position.
+2. Once launched in someone's LinkedIn list of connections, cycles through them and checks whether anyone works at companies that are hiring for the desired position.
 3. Stores job posting, location, company, and relevant information about the connection to the company in storage, and allows for a CSV download.
 
 ### Background
