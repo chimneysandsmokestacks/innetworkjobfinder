@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LinkedIn Job Finder</title>
+    <style>
+        #jobTitleInput {
+            padding: 5px;
+            margin-right: 5px;
+            font-size: 14px;
+            border: 1px solid #ccc; /* Gray border */
+            border-radius: 2px; /* Slightly rounded corners */
+        }
+
+        #jobTitleInput::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+            color: gray; /* Placeholder text color */
+            opacity: 1; /* Firefox */
+        }
+
+        #jobTitleInput:-ms-input-placeholder { /* Internet Explorer 10-11 */
+            color: gray;
+        }
+
+        #jobTitleInput::-ms-input-placeholder { /* Microsoft Edge */
+            color: gray;
+        }
+
+        .job-title-container {
+            margin-bottom: 10px;
+        }
+
+        #okButton {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #F0F2F5;
+            margin: 0;
+            padding: 20px;
+            color: #1C1E21;
+            font-size: 14px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #1877F2;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .button-container {
+            display: flex;
+        }
+
+        button {
+            background-color: #1877F2;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            padding: 8px 16px;
+            margin-left: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #165DB6;
+        }
+
+        button#stopButton {
+            background-color: #E4E6EB;
+            color: #050505;
+        }
+
+        button#stopButton:hover {
+            background-color: #B0B3B8;
+        }
+
+        .job-listing {
+            background: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .job-listing h3 {
+            margin-top: 0;
+            color: #050505;
+            font-size: 16px;
+        }
+
+        .job-listing a {
+            color: #1877F2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .job-listing a:hover {
+            text-decoration: underline;
+        }
+
+        .job-listing .open-all {
+            display: block;
+            text-align: center;
+            margin-top: 12px;
+            padding: 10px;
+            background-color: #42B72A;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+
+        .job-listing .open-all:hover {
+            background-color: #36A420;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LinkedIn Job Network Search</h1>
+    </div>
+
+    <div class="job-title-container">
+        <input type="text" id="jobTitleInput" placeholder="Enter Job Title...">
+        <button id="ConfirmJobTitleButton">Confirm Job Title</button>
+        <button id="clearJobTitleButton">Clear Job Title</button>
+        <span id="currentJobTitle">Currently set to: None</span>
+    </div>
+
+    <div class="button-container">
+        <button id="loadButton">Load</button>
+        <button id="stopButton">Stop</button>
+        <button id="clearButton">Clear</button>
+    </div>
+    <button id="downloadCsvButton">Download CSV</button>
+    <div id="jobListingsContainer">
+        <!-- Job listings will be injected here -->
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
