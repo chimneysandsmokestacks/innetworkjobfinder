@@ -1,4 +1,4 @@
-# Linkedin Job Finder Extension
+# Linkedin Job Finder Browser Extension
 
 ## Overview
 
