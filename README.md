@@ -4,13 +4,12 @@
 
 This Chrome browser extension accomplishes three things: 
 1. Allows the user to set a job title they're interested in.
-2. Cycles through the user's, or a connection's network and checks whether 2nd-degree connections work at companies that are hiring for the desired position.
-3. Stores job posting, location, company, and relevant information about the connection to the company in storage, as well as allows for a CSV download.
+2. Once launched in someone's connection list, checks whether anyone works at companies that are hiring for the desired position.
+3. Stores job posting, location, company, and relevant information about the connection to the company in storage, and allows for a CSV download.
 
 ### Background
 I've found the most success in my job search through introductions to people who work in industries I'm interested in. 
-LinkedIn is a popular platform for finding people and job opportunites, but the process is time-consuming: Looking at a friend's network, opening hundreds of profiles, opening their company pages,
-and checking for job postings. Because professional networks are often highly clustered around people's current and former jobs, this shouldn't take much time. But keeping track of which companies I already checked is difficult, and often
+LinkedIn is a popular platform for finding people and job opportunites, but the process is time-consuming: Looking at a friend's network, opening hundreds of profiles, opening their company pages, and checking for job postings. Because professional networks are often highly clustered around people's current and former jobs, this shouldn't take much time. But keeping track of which companies I already checked is difficult, and often
 not visible from a connection's friends list. This browser extension addresses this, by automatically cycling through a connection's network and checking for relevant job opportunities.
 
 ### Current Limitations and Potential Improvements
@@ -30,4 +29,4 @@ not visible from a connection's friends list. This browser extension addresses t
 
 ## Getting Started
 To install this extension, download the files and put them all in one folder. Then open chrome://extensions in your browser and select 'Load Unpacked'. Select the folder.
-To use the extension, go to someone's network page (usually by clicking the "500+ connections" underneath their profile photo, and tailor your search to a specific industry or location via Linkedin's native search features. Open the extension and set a job title, then click Load.
+To use the extension, go to someone's network page (usually by clicking the "500+ connections" link underneath their profile photo, and tailor your search to a specific industry or location via Linkedin's native search features. Open the extension and set a job title, then click Load.
