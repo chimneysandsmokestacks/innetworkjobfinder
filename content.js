@@ -41,7 +41,7 @@ function sendMessageToBackground(message) {
 }
 
 function randomPause(callback) {
-    const randomTime = Math.floor(Math.random() * 2000) + 2000; // Random time between 2 and 4 seconds
+    const randomTime = Math.floor(Math.random() * 4000) + 4000; // Random time between 2 and 4 seconds
     const seconds = (randomTime / 1000).toFixed(2);
     sendPauseMessageToBackground(seconds);
     setTimeout(callback, randomTime);
