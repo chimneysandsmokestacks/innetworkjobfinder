@@ -9,7 +9,7 @@ This Chrome browser extension accomplishes three things:
 
 ### Background
 I've found the most success in my job search through introductions to people who work in industries I'm interested in. 
-LinkedIn is a popular platform for finding connections to companies, but the process can be very time-consuming: Looking at a friend's network, opening hundreds of profiles, finding the company jobs page. Because professional networks are often highly clustered around people's current and former jobs, this shouldn't take much time. But keeping track of which companies I already checked is difficult, and often not directly visible from a connection's friends list. This browser extension addresses this, by automatically cycling through a connection's network and checking for relevant job opportunities.
+LinkedIn is a popular platform for finding connections to companies, but the process can be very time-consuming: Looking at a friend's network, opening many profiles, finding the company jobs page. Because professional networks are often highly clustered around people's current and former jobs, this shouldn't take much time. But keeping track of which companies I already checked is difficult, and often not directly visible from a connection's friends list. This browser extension addresses this, by automatically cycling through a connection's network and checking for relevant job opportunities.
 
 ### Current Limitations and Potential Improvements
 * Only searches for one job title at a time.
