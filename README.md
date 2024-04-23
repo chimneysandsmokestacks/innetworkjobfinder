@@ -14,14 +14,14 @@ LinkedIn is a popular platform for finding connections to companies, but the pro
 ### Current Limitations and Potential Improvements
 * Only searches for one job title at a time.
 * Parses jobs from companies' abbreviated job pages. These job pages surface 2-3 jobs that most align with the user's job preferences as indicated in their profile.
-* Because of how Linkedin's DOM creates dynamic elements, the job title of the person who works at a company with openings may not be accurate.
+* Because of how Linkedin's DOM dynamic DOM, the job title of the person working there may not be accurate.
 * The UI isn't pretty.
-* The Stop button isn't active yet, just close the tab if you want to end the search.
+* The Stop button isn't working yet, so just close the tab if you want to end the search.
 
 ### Features
 * Stores all seen companies in local storage, and skips over opening a profile or jobs page when it is next detected in a person's headline or experience section.
 * Stores all  objects in reference to the tab the user initiated the search on, which will allow for multi-threading in the future.
-* Mimics human page interactions during search.
+* Mimics human page interactions during execution.
 * Stores all scanned profiles and their current companies in the knownEmployees object in storage. This could be later used for network analysis.
 * Allows user to open job opportunity and relevant connections in new tab from the browser extension.
 * Creates a well-formatted CSV for download.
