@@ -1,5 +1,5 @@
 chrome.runtime.onInstalled.addListener(() => {
-    console.log("LinkedIn Extension Installed.");
+    console.log("Extension Installed.");
 
     // Retrieve and log the job title set by the user
     chrome.storage.local.get('jobTitleSetByUser', (data) => {
@@ -10,8 +10,6 @@ chrome.runtime.onInstalled.addListener(() => {
         }
     });
 
-
-    // Initialize or reset the current index at extension install/reload
     chrome.storage.local.set({
         currentIndex: 0
     }, () => {
@@ -23,16 +21,26 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 const stabilizationTimeouts = {};
-const STABILIZATION_DELAY = 3000; // Delay in milliseconds, adjust based on observed behavior
+const STABILIZATION_DELAY = 3000; // Delay to stabilize website
 let jobDetails = []; // Array to store the details of jobs found
 let monitoredTabs = {}; // Store tabs that need to be monitored for navigation to "/jobs/"
 var tabProfileLinks = {};
 
-//helper function to inject the script into a tab:
-
+//new helper function with stop functionality
 function injectScript(tabId) {
     console.log("Attempting to inject script into tab ID:", tabId);
-    console.log("Current state of monitoredTabs:", monitoredTabs);
+    // Check if the stop flag is set for this tab
+    if (monitoredTabs[tabId] && monitoredTabs[tabId].stopInjection) {
+        console.log("Injection stopped by user request for tab ID:", tabId);
+        chrome.runtime.sendMessage({
+            action: "operationHalted",
+            tabId: tabId
+        });
+        // Reset the flag after handling the stop request
+        monitoredTabs[tabId].stopInjection = false;
+        return;
+    }
+
     chrome.scripting.executeScript({
         target: {
             tabId: tabId
@@ -56,6 +64,75 @@ function injectScript(tabId) {
 }
 
 
+let isUpdatingJobDetails = false;
+function updateJobDetails(message, sendResponse) {
+    if (isUpdatingJobDetails) {
+        setTimeout(() => updateJobDetails(message, sendResponse), 100); // Retry after a short delay
+        return;
+    }
+    isUpdatingJobDetails = true;
+    chrome.storage.local.get({
+        jobDetails: []
+    }, (data) => {
+        let updatedJobDetails = data.jobDetails || [];
+        updatedJobDetails.push({
+            profileUrl: message.profileUrl,
+            personName: message.personName,
+            personjobTitle: message.personjobTitle,
+            companyName: message.companyName,
+            jobUrl: message.jobUrl,
+            jobTitleText: message.jobTitleText,
+            jobLocation: message.jobLocation,
+            companyLink: message.companyLink
+        });
+        chrome.storage.local.set({
+            jobDetails: updatedJobDetails
+        }, () => {
+            console.log("Job details updated and stored:", updatedJobDetails);
+            sendResponse({
+                status: "Job details stored"
+            });
+            isUpdatingJobDetails = false;
+        });
+    });
+}
+
+
+
+        let frame = 0;
+        const frameRate = 50; // Frame rate in milliseconds
+        const frames = [
+        '/images/logo1.png', '/images/logo2.png', '/images/logo3.png',
+        '/images/logo4.png', '/images/logo5.png', '/images/logo6.png',
+        '/images/logo7.png', '/images/logo8.png', '/images/logo9.png',
+        '/images/logo10.png', '/images/logo11.png']
+        let animationInterval = null;  // Initialize to null for clarity
+
+        function animateIcon() {
+        if (frames.length > 0) {
+            frame = (frame + 1) % frames.length; // Cycle through frames
+            chrome.action.setIcon({ path: frames[frame] }); // Update to use 'chrome.action' API
+            animationInterval = setTimeout(animateIcon, frameRate); // Schedule the next frame update
+        }
+        }
+
+        function startAnimation() {
+        if (!animationInterval) {
+            animateIcon(); // Start animation
+        }
+        }
+
+        function stopAnimation() {
+    if (animationInterval) {
+        clearTimeout(animationInterval); // Stop the animation
+        animationInterval = null; // Reset the interval ID
+        // Set the icon to the next image in the sequence after the last one shown
+        const nextImageIndex = (frame + 1) % frames.length;
+        chrome.action.setIcon({ path: frames[nextImageIndex] });
+    }
+}
+
+
 
 function closeTabAndAdvanceIndex(tabId) {
     console.log(`Request received to close tab ID: ${tabId}`);
@@ -69,7 +146,7 @@ function closeTabAndAdvanceIndex(tabId) {
             console.log("Current tab closed.");
             const openedFromCurrentSearchTabId = monitoredTabs[tabId]?.openedFromCurrentSearchTabId;
             const currentSearchIndex = monitoredTabs[openedFromCurrentSearchTabId]?.currentIndex || 0;
-            
+
 
             // Ensure that searchTabId is defined and then increment index for it
             if (openedFromCurrentSearchTabId) {
@@ -95,7 +172,7 @@ function closeTabAndAdvanceIndex(tabId) {
                     // Reinject content script and continue operation on the search tab
                     injectScript(openedFromCurrentSearchTabId);
                     console.log(`Sending message to open next profile on tab: ${openedFromCurrentSearchTabId}`);
-                    
+
                 });
             } else {
                 console.log("No stored search tab ID found.");
@@ -105,82 +182,112 @@ function closeTabAndAdvanceIndex(tabId) {
 }
 
 
-
-// // Helper function to increment the profile index.
-// function incrementProfileIndex(callback) {
-//     const nextIndex = currentIndex + 1;
-
-//     if (monitoredTabs[tabId]) { // Check if the tabId exists in monitoredTabs
-//         monitoredTabs[tabId].currentIndex = nextIndex; 
-//         console.log(`Moved to next profile index: ${nextIndex} for tab ${tabId}`);
-//     } else {
-//         console.error(`No monitored data found for tab ${tabId}`);
-//     }
-//     if (callback) {
-//         callback(nextIndex);
-//     }
-// }
-
-
-
 //listener function for messages from content.js or popup.js
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("Background script received a message from:", sender, message);
     switch (message.action) {
 
+
+
         case "openNewTab":
-    if (message.url) {
-        // Log the tab ID of the sender if available
-        console.log("Opening new tab from sender tab ID:", sender.tab.id);
-        senderTabId = sender.tab.id
-        // Check if we have a stored window ID to open the new tab in
-        let windowId = monitoredTabs[sender.tab.id]?.searchWindowId || chrome.windows.WINDOW_ID_CURRENT;
-        console.log("Using window ID:", windowId); // Debug the window ID being used
+            if (message.url) {
+                // Log the tab ID of the sender if available
+                console.log("Opening new tab from sender tab ID:", sender.tab.id);
+                let senderTabId = sender.tab.id;
 
-        chrome.tabs.create({
-            windowId: windowId, // Use the stored window ID or fallback to current window
-            url: message.url,
-            active: true // Open in background
-        }, (newTab) => {
-            if (chrome.runtime.lastError) {
-                console.error("Error creating new tab:", chrome.runtime.lastError.message);
-                return; // Stop further execution if there's an error
+                // Check the stop flag before proceeding
+                if (monitoredTabs[senderTabId]?.stopInjection) {
+                    console.log("Stop flag is set for this tab. Halting operations.");
+                    sendResponse({
+                        status: "Tab open halted",
+                        error: "Operation stopped by user."
+                    });
+
+                    // Send a message to popup.js that the operation was halted
+                    chrome.runtime.sendMessage({
+                        action: "operationHalted",
+                        message: "Operation halted due to stop flag."
+                    });
+
+                    return true; // Ensure the messaging channel is closed properly
+                }
+
+                // Check if we have a stored window ID to open the new tab in
+                let windowId = monitoredTabs[senderTabId]?.searchWindowId || chrome.windows.WINDOW_ID_CURRENT;
+                console.log("Using window ID:", windowId);
+
+                // Get the current records of tabs opened and the maximum allowed
+                chrome.storage.local.get(['tabOpeningRecords', 'maxNumberOfTabs'], (data) => {
+                    let tabOpeningRecords = data.tabOpeningRecords || [];
+                    let maxNumberOfTabs = data.maxNumberOfTabs || 1000; // Use a sensible default if not set
+
+                    // Filter records to keep only those within the last 24 hours
+                    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+                    tabOpeningRecords = tabOpeningRecords.filter(record => record.time > oneDayAgo);
+
+                    if (tabOpeningRecords.length < maxNumberOfTabs) {
+                        // Still under the limit, open the new tab
+                        chrome.tabs.create({
+                            windowId: windowId,
+                            url: message.url,
+                            active: true // Open in background
+                        }, (newTab) => {
+                            if (chrome.runtime.lastError) {
+                                console.error("Error creating new tab:", chrome.runtime.lastError.message);
+                                sendResponse({
+                                    status: "Tab open failed",
+                                    error: chrome.runtime.lastError.message
+                                });
+                                return;
+                            }
+                            // Log the new tab ID
+                            console.log("New tab created with ID:", newTab.id);
+                            // Add the new tab's opening record and update the records
+                            tabOpeningRecords.push({
+                                tabId: newTab.id,
+                                time: Date.now()
+                            });
+                            chrome.storage.local.set({
+                                tabOpeningRecords
+                            }, () => {
+                                console.log("Tab opening records updated.");
+                            });
+                            monitoredTabs[newTab.id] = {
+                                injected: false,
+                                openedFromCurrentSearchTabId: senderTabId,
+                                pageNavigatedByExtension: false,
+                                navigatedByExtension: true,
+                            };
+                            console.log(`Monitored tab ${newTab.id} updated with new tab data:`, monitoredTabs[newTab.id]);
+                            injectScript(newTab.id);
+                            sendResponse({
+                                status: "Tab opened",
+                                tabId: newTab.id
+                            });
+                        });
+                        return true;
+                    } else {
+                        console.log("Reached maximum tab limit within the last 24 hours. Not opening more tabs.");
+                        sendResponse({
+                            status: "Tab open failed",
+                            error: "Reached maximum tab limit."
+                        });
+                    }
+                });
+            } else {
+                console.error("No URL provided for opening new tab.");
+                sendResponse({
+                    status: "Tab open failed",
+                    error: "No URL provided."
+                });
             }
-
-            // Log the new tab ID
-            console.log("New tab created with ID:", newTab.id);
-
-            monitoredTabs[newTab.id] = {
-                injected: false,
-                openedFromCurrentSearchTabId: senderTabId,   // Associate this new tab with the sender's search tab ID
-                pageNavigatedByExtension: false,
-                navigatedByExtension: true,
-            };
-
-            console.log(`Monitored tab ${newTab.id} updated with new tab data:`, monitoredTabs[newTab.id]); // Log the new state of monitoredTabs
-
-            // Optionally reinject content.js into the new tab
-            injectScript(newTab.id);
-            sendResponse({
-                status: "Tab opened",
-                tabId: newTab.id
-            });
-        });
-    } else {
-        console.error("No URL provided for opening new tab.");
-        sendResponse({
-            status: "Tab open failed",
-            error: "No URL provided."
-        });
-    }
-    return true; // Keep the messaging channel open for the sendResponse callback
-
+            return true;
 
 
         case "closeCurrentTab":
             // Use the helper function to close the tab and handle the index incrementation
             closeTabAndAdvanceIndex(sender.tab.id);
-            return true;
+            break;
 
         case "logSearchJobTitle":
             console.log(`Job title being searched: ${message.jobTitle}`);
@@ -190,41 +297,22 @@ function closeTabAndAdvanceIndex(tabId) {
             });
             break;
 
+
         case "foundJob":
-            // Retrieve the current list of job details from local storage
-            chrome.storage.local.get({
-                jobDetails: []
-            }, (data) => {
-                let updatedJobDetails = data.jobDetails || []; // Ensure we have an array, even if storage returned undefined
+            updateJobDetails(message, sendResponse);
+            return true;
 
-                // Add the new job detail
-                updatedJobDetails.push({
-                    profileUrl: message.profileUrl,
-                    personName: message.personName,
-                    personjobTitle: message.personjobTitle,
-                    companyName: message.companyName,
-                    jobUrl: message.jobUrl,
-                    jobTitleText: message.jobTitleText,
-                    jobLocation: message.jobLocation
-                });
-
-                // Update the job details in local storage
-                chrome.storage.local.set({
-                    jobDetails: updatedJobDetails
-                }, () => {
-                    console.log("Job details updated and stored:", updatedJobDetails);
-                    // Respond to the content script that sent the foundJob message
-                    sendResponse({
-                        status: "Job details stored"
-                    });
-                });
-            });
-
-            return true; // Indicates that we will send a response asynchronously
-
-        case "logPause":
+       case "logPause":
             console.log(`Pausing for ${message.duration} seconds...`);
+            startAnimation(); // Start the animation when pause starts
+            setTimeout(() => {
+                stopAnimation(); // Stop the animation after the pause duration
+            }, message.duration * 1000); // Convert seconds to milliseconds
             break;
+
+
+
+         
 
 
         case "logInfo":
@@ -232,6 +320,7 @@ function closeTabAndAdvanceIndex(tabId) {
             sendResponse({
                 status: "Information logged successfully"
             })
+            return true;
             break;
 
 
@@ -239,7 +328,7 @@ function closeTabAndAdvanceIndex(tabId) {
             // Retrieve job details from local storage and send them to the requester
             chrome.storage.local.get('jobDetails', (data) => {
                 if (data.jobDetails) {
-                  //  console.log("Sending job details to requester:", JSON.stringify(data.jobDetails, null, 2));
+                    //  console.log("Sending job details to requester:", JSON.stringify(data.jobDetails, null, 2));
                     sendResponse({
                         status: "Job details sent",
                         jobDetails: data.jobDetails
@@ -252,7 +341,7 @@ function closeTabAndAdvanceIndex(tabId) {
                     });
                 }
             });
-            return true; // Indicates that this listener expects to send an asynchronous response
+            return true;
 
 
         case "clearJobDetails":
@@ -283,55 +372,83 @@ function closeTabAndAdvanceIndex(tabId) {
             sendResponse({
                 status: "Job details cleared and index request sent"
             });
-            break;
+            return true;
 
 
 
 
         case "loadContentScript":
-    if (message.tabId && message.windowId) {
-        // Initialize or reset the monitoredTabs and tabProfileLinks entries for this tab
-        monitoredTabs[message.tabId] = {
-            injected: false,
-            navigatedByExtension: false,
-            currentIndex: 0,  // Initialize the index to 0
-            currentSearchTabId: message.tabId,
-            searchWindowId: message.windowId
-        };
-        tabProfileLinks[message.tabId] = []; // Reset the tabProfileLinks array for this tab
-    
-        console.log(`Preparing to inject content script into tab: ${message.tabId}`);
+            if (message.tabId && message.windowId) {
+                // Initialize or reset the monitoredTabs and tabProfileLinks entries for this tab
+                monitoredTabs[message.tabId] = {
+                    injected: false,
+                    navigatedByExtension: false,
+                    currentIndex: 0, // Initialize the index to 0
+                    currentSearchTabId: message.tabId,
+                    searchWindowId: message.windowId
+                };
+                tabProfileLinks[message.tabId] = []; // Reset the tabProfileLinks array for this tab
+                console.log(`Preparing to inject content script into tab: ${message.tabId}`);
+                // Inject the content script into the  tab
+                injectScript(message.tabId, () => {
+                    // Check for injection errors
+                    if (chrome.runtime.lastError) {
+                        console.error("Error injecting content script:", chrome.runtime.lastError.message);
+                        sendResponse({
+                            status: "injectionFailed",
+                            error: chrome.runtime.lastError.message
+                        });
+                    } else {
+                        console.log("Content script injected successfully into tab: " + message.tabId);
 
-        // Inject the content script into the specified tab
-        injectScript(message.tabId, () => {
-            // Check for injection errors
-            if (chrome.runtime.lastError) {
-                console.error("Error injecting content script:", chrome.runtime.lastError.message);
-                sendResponse({
-                    status: "injectionFailed",
-                    error: chrome.runtime.lastError.message
+                        // Update the monitoredTabs object for the current tab after successful injection
+                        monitoredTabs[message.tabId].injected = true;
+                        monitoredTabs[message.tabId].navigatedByExtension = false;
+
+                        console.log(`Script injected and flags set for tab: ${message.tabId} in window: ${message.windowId}`);
+                        sendResponse({
+                            status: "Script injected and tab marked as the right search page"
+                        });
+                    }
                 });
             } else {
-                console.log("Content script injected successfully into tab: " + message.tabId);
-
-                // Update the monitoredTabs object for the current tab after successful injection
-                monitoredTabs[message.tabId].injected = true;
-                monitoredTabs[message.tabId].navigatedByExtension = false;
-
-                console.log(`Script injected and flags set for tab: ${message.tabId} in window: ${message.windowId}`);
+                console.error("Required information (tab ID or window ID) not provided for content script injection.");
                 sendResponse({
-                    status: "Script injected and tab marked as the right search page"
+                    status: "injectionFailed",
+                    error: "Required information missing."
                 });
             }
-        });
-    } else {
-        console.error("Required information (tab ID or window ID) not provided for content script injection.");
-        sendResponse({
-            status: "injectionFailed",
-            error: "Required information missing."
-        });
-    }
-    return true; // Indicates that this listener expects to send an asynchronous response
+            return true;
+
+        case "stopScript":
+            const tabId = message.tabId; // Get tabId directly from the message
+            if (tabId) {
+                console.log("Setting stop flag for tab ID:", tabId);
+                if (!monitoredTabs[tabId]) {
+                    monitoredTabs[tabId] = {
+                        injected: false,
+                        stopInjection: false
+                    };
+                }
+                monitoredTabs[tabId].stopInjection = true; // Set the stop flag
+                sendResponse({
+                    status: "Stop flag set for tab ID: " + tabId
+                });
+            } else {
+                console.error("No tab ID provided in the message.");
+                sendResponse({
+                    status: "No tab ID found in message."
+                });
+            }
+            break;
+        default:
+            console.log("Unhandled action:", message.action);
+            sendResponse({
+                status: "Action not handled"
+            });
+
+            return true;
+
 
 
 
@@ -342,47 +459,51 @@ function closeTabAndAdvanceIndex(tabId) {
                     status: "Profile links stored successfully"
                 });
             }
-            break;
+            return true;
 
         case "getStoredProfileLinks":
-    // Directly use sender.tab.id to access the tab ID from the sender of the message
-    if (sender.tab && sender.tab.id) {
-        const tabId = sender.tab.id;
-        console.log(`Received request for stored profile links for tab ID: ${tabId}`);
+            // Directly use sender.tab.id to access the tab ID from the sender of the message
+            if (sender.tab && sender.tab.id) {
+                const tabId = sender.tab.id;
+                console.log(`Received request for stored profile links for tab ID: ${tabId}`);
 
-        console.log(`Looking up profile links for tab ID: ${tabId}`);
-        if (tabProfileLinks[tabId]) {
-            console.log(`Profile links found for tab ID ${tabId}:`, tabProfileLinks[tabId]);
-            sendResponse({
-                profileLinks: tabProfileLinks[tabId]
-            });
-        } else {
-            console.log(`No profile links found for tab ID ${tabId}.`);
-            sendResponse({
-                error: "No profile links available for this tab."
-            });
-        }
-    } else {
-        console.log("Error: Message sender does not have a valid tab context.");
-        sendResponse({
-            error: "Message not sent from a valid tab."
-        });
-    }
-    return true;
+                console.log(`Looking up profile links for tab ID: ${tabId}`);
+                if (tabProfileLinks[tabId]) {
+                    console.log(`Profile links found for tab ID ${tabId}:`, tabProfileLinks[tabId]);
+                    sendResponse({
+                        profileLinks: tabProfileLinks[tabId]
+                    });
+                } else {
+                    console.log(`No profile links found for tab ID ${tabId}.`);
+                    sendResponse({
+                        error: "No profile links available for this tab."
+                    });
+                }
+            } else {
+                console.log("Error: Message sender does not have a valid tab context.");
+                sendResponse({
+                    error: "Message not sent from a valid tab."
+                });
+            }
+            return true;
 
 
 
         case "getCurrentIndex":
-        if (sender.tab && sender.tab.id && monitoredTabs[sender.tab.id]) {
-            // Retrieve the current index from the monitoredTabs object
-            const currentIndex = monitoredTabs[sender.tab.id].currentIndex;
-            sendResponse({ currentIndex: currentIndex });
-            console.log(`Sent current index ${currentIndex} for tab ID: ${sender.tab.id}`);
-        } else {
-            sendResponse({ error: "Tab ID is undefined or index not found" });
-            console.error("Failed to retrieve current index for sender tab.");
-        }
-        break;
+            if (sender.tab && sender.tab.id && monitoredTabs[sender.tab.id]) {
+                // Retrieve the current index from the monitoredTabs object
+                const currentIndex = monitoredTabs[sender.tab.id].currentIndex;
+                sendResponse({
+                    currentIndex: currentIndex
+                });
+                console.log(`Sent current index ${currentIndex} for tab ID: ${sender.tab.id}`);
+            } else {
+                sendResponse({
+                    error: "Tab ID is undefined or index not found"
+                });
+                console.error("Failed to retrieve current index for sender tab.");
+            }
+            break;
 
 
 
@@ -411,7 +532,7 @@ function closeTabAndAdvanceIndex(tabId) {
                 newIndex: updatedIndex
             });
         }
-        return true; // Keep the messaging channel open for asynchronous response
+        return true;
 
 
 
@@ -435,11 +556,12 @@ function closeTabAndAdvanceIndex(tabId) {
                 });
             } else {
 
-             }   return true; // Keep the messaging channel open for the sendResponse callback
+            }
+            return true; // Keep the messaging channel open for the sendResponse callback
 
 
 
-            case "setNavigatedByExtensionFlag":
+        case "setNavigatedByExtensionFlag":
             // Check if the sender has a tab object and an ID
             if (sender.tab && sender.tab.id) {
                 let tabId = sender.tab.id; // This is the tab ID from which the message was sent
@@ -466,13 +588,13 @@ function closeTabAndAdvanceIndex(tabId) {
 
 
 
-            case "setInjectedFlag":
+        case "setInjectedFlag":
             // Check if the sender has a tab object and an ID
             if (sender.tab && sender.tab.id) {
                 let tabId = sender.tab.id; // This is the tab ID from which the message was sent
                 // Now you can use tabId to perform actions on this tab
                 // For instance, setting a flag specific to this tab in monitoredTabs
-             if (!monitoredTabs[tabId]) {
+                if (!monitoredTabs[tabId]) {
                     monitoredTabs[tabId] = {}; // Initialize as an empty object if it does not exist
                 }
                 // Set or update the navigatedByExtension flag
@@ -486,44 +608,38 @@ function closeTabAndAdvanceIndex(tabId) {
                 });
             } else {
                 console.error('No tab ID found in the sender information');
-            } return true; // Keep the messaging channel open for the sendResponse callback
+            }
+            return true; // Keep the messaging channel open for the sendResponse callback
 
     }
     return true; // Keep the messaging channel open for the sendResponse callback
 
 
-   });   
+});
 
-    chrome.tabs.onRemoved.addListener((tabId) => {
-        if (monitoredTabs[tabId]) {
-            delete monitoredTabs[tabId];
-            console.log(`Monitoring stopped and data cleared for Tab ID: ${tabId}`);
+chrome.tabs.onRemoved.addListener((tabId) => {
+    if (monitoredTabs[tabId]) {
+        delete monitoredTabs[tabId];
+        console.log(`Monitoring stopped and data cleared for Tab ID: ${tabId}`);
+    }
+});
+
+// Listener function to monitor if tab navigated to jobs page or jobs page was invalid and produced new search results page
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'complete') {
+        // Clear any previous timeout to handle rapid successive updates
+        if (stabilizationTimeouts[tabId]) {
+            clearTimeout(stabilizationTimeouts[tabId]);
         }
-    });
 
-    // Listener function to monitor if tab navigated to jobs page or jobs page was invalid and produced new search results page
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-        if (changeInfo.status === 'complete') {
-            // Clear any previous timeout to handle rapid successive updates
-            if (stabilizationTimeouts[tabId]) {
-                clearTimeout(stabilizationTimeouts[tabId]);
-            }
+        // Set a new timeout to ensure the changes are stable before taking action
+        stabilizationTimeouts[tabId] = setTimeout(() => {
+            // console.log(`Page has completed loading on tab ${tabId}. URL: ${tab.url}`);
 
-            // Set a new timeout to ensure the changes are stable before taking action
-            stabilizationTimeouts[tabId] = setTimeout(() => {
-                console.log(`Page has completed loading on tab ${tabId}. URL: ${tab.url}`);
-                // Ensure the monitoredTabs entry exists for the tab
-                // if (!monitoredTabs[tabId]) {
-                //     monitoredTabs[tabId] = {
-                //         injected: true,
-                //         navigatedByExtension: false,
-                //         pageNavigatedByExtension: false
-                //     };
-                // }
 
-                // Retrieve the navigatedByExtension and pageNavigatedByExtension statuses from the monitoredTabs for this tab
-                const navigatedByExtension = monitoredTabs[tabId].navigatedByExtension;
-                const pageNavigatedByExtension = monitoredTabs[tabId].pageNavigatedByExtension;
+            if (monitoredTabs[tabId]) {
+                const navigatedByExtension = monitoredTabs[tabId]?.navigatedByExtension;
+                const pageNavigatedByExtension = monitoredTabs[tabId]?.pageNavigatedByExtension;
                 console.log(`Current state for Tab ${tabId}:`, monitoredTabs[tabId]);
                 if (tab.url.includes('/search/results/') || tab.url.includes('/company/unavailable/')) {
                     console.log(`Received pageNavigatedByExtension flag for ${tabId}: ${pageNavigatedByExtension}`);
@@ -549,21 +665,18 @@ function closeTabAndAdvanceIndex(tabId) {
                     injectScript(tabId);
                     monitoredTabs[tabId].injected = true; // Mark as injected to prevent further injections
                 }
+            }
+        }, STABILIZATION_DELAY)
+    }
+});
 
-                // Reset the navigatedByExtension flag after handling the tab update
-                // monitoredTabs[tabId].navigatedByExtension = false;
-                // console.log(`Navigation flag reset for Tab ${tabId}.`);
-            }, STABILIZATION_DELAY);
+
+function logKnownEmployees() {
+    chrome.storage.local.get('knownEmployees', (data) => {
+        if (data.knownEmployees) {
+            console.log("Current knownEmployees:", JSON.stringify(data.knownEmployees, null, 2));
+        } else {
+            console.log("No known Employees found in storage.");
         }
     });
-
-
-    function logKnownEmployees() {
-        chrome.storage.local.get('knownEmployees', (data) => {
-            if (data.knownEmployees) {
-                console.log("Current knownEmployees:", JSON.stringify(data.knownEmployees, null, 2));
-            } else {
-                console.log("No known Employees found in storage.");
-            }
-        });
-    }
+}
