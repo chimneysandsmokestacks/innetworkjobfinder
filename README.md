@@ -18,8 +18,8 @@ LinkedIn is a popular platform for finding connections to companies that are hir
 ### Features
 * Allows the user to set multiple job titles.
 * Allows the user to limit how many profiles they will visit in a 24h period.
-* Stores all seen companies in local storage, and skips over opening a profile or jobs page when it is next detected in a person's headline or experience section.
-* Skips visiting profile that visited in the previous week (assumes people don't switch companies that often).
+* Stores all seen companies in local storage, and skips over opening a jobs page when it is next detected in a person's search results headline or experience section.
+* Skips visiting profiles that were visited in the previous week (assumes people don't switch companies as often).
 * Mimics human page interactions.
 * Allows user to open job opportunities and relevant connections in new tabs directly from the browser extension.
 * Creates a well-formatted CSV for download.
