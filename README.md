@@ -3,27 +3,25 @@
 ## Overview
 
 This Chrome browser extension accomplishes three things: 
-1. Allows the user to set a job title they're interested in.
-2. Once launched in someone's LinkedIn list of connections, cycles through them and checks whether anyone works at companies that are hiring for the desired position.
-3. Stores job posting, location, company, and relevant information about the connection to the company in storage, and allows for a CSV download.
+1. Allows the user to set one or more job title(s) they're interested in.
+2. Once launched in someone's LinkedIn list of connections, cycles through each profile and checks whether they work at companies that are hiring for the desired position(s).
+3. Stores job posting, location, company, and relevant information about the connection in storage, and allows for a CSV download.
 
 ### Background
 I've found the most success in my job search through introductions to people who work in industries I'm interested in. 
-LinkedIn is a popular platform for finding connections to companies, but the process can be very time-consuming: Looking at a friend's network, opening many profiles, finding the company jobs page. Because professional networks are often highly clustered around people's current and former jobs, this shouldn't take much time. But keeping track of which companies I already checked is difficult, and often not directly visible from a connection's friends list. This browser extension addresses this, by automatically cycling through a connection's network and checking for relevant job opportunities.
+LinkedIn is a popular platform for finding connections to companies that are hiring, but the process is very time-consuming. Because professional networks are often highly clustered around people's current and former jobs, this shouldn't take much time. But keeping track of which companies I already checked is difficult, and not directly visible from a connection's friends list. This browser extension addresses this issue by automatically cycling through a connection's network and checking for relevant job opportunities.
 
 ### Current Limitations and Potential Improvements
-* Only searches for one job title at a time.
-* Parses jobs from companies' abbreviated job pages. These job pages surface 2-3 jobs that most align with the user's job preferences as indicated in their profile.
-* Because of how Linkedin's DOM dynamic DOM, the job title of the person working there may not be accurate.
-* The UI isn't pretty.
-* The Stop button isn't working yet, so just close the tab if you want to end the search.
+* Parses jobs from companies' abbreviated job pages. These job pages surface 2-3 jobs that most align with the user's job preferences as indicated in their LinkedIn profile.
+* Because of how Linkedin's DOM dynamic DOM, the job title of the person working at a company with openins may not be accurate.
 
 ### Features
+* Allows the user to set multiple job titles.
+* Allows the user to limit how many profiles they will visit in a 24h period.
 * Stores all seen companies in local storage, and skips over opening a profile or jobs page when it is next detected in a person's headline or experience section.
-* Stores all  objects in reference to the tab the user initiated the search on, which will allow for multi-threading in the future.
-* Mimics human page interactions during execution.
-* Stores all scanned profiles and their current companies in the knownEmployees object in storage. This could be later used for network analysis.
-* Allows user to open job opportunity and relevant connections in new tab from the browser extension.
+* Skips visiting profile that visited in the previous week (assumes people don't switch companies that often).
+* Mimics human page interactions.
+* Allows user to open job opportunities and relevant connections in new tabs directly from the browser extension.
 * Creates a well-formatted CSV for download.
 
 ## Getting Started
