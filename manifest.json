@@ -1,21 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "Network Expander Staging",
+  "name": "InNetwork Job Finder",
   "version": "1.0",
   "permissions": [
     "activeTab",
-    "scripting", "storage",
-    "webNavigation", "tabs"
-    // Add other permissions as needed
+    "scripting",
+    "storage",
+   
+    "tabs"
   ],
-  "host_permissions": [
-    "*://*.linkedin.com/*"
-  ],
+
+
+ 
+"host_permissions": [
+    "*://*.linkedin.com/*"],
+
+
   "background": {
     "service_worker": "background.js"
   },
-
-
 
 
   "action": {
