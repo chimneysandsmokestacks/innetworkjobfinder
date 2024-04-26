@@ -1,16 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>LinkedIn Job Finder</title>
     <style>
-        #jobTitleInput {
-            padding: 5px;
+
+        .BoxInput {
+            padding: 7px;
             margin-right: 5px;
             font-size: 14px;
-            border: 1px solid #ccc; /* Gray border */
-            border-radius: 2px; /* Slightly rounded corners */
+            border: 3px solid black;
+            border-radius: 0px; /* Slightly rounded corners */
+            margin-bottom: 9px;
+            font-weight: 500;
+            background-color: #B8FF9F; /* Light green background */
+            box-shadow: 
+                inset 0 0 0 0px rgba(0, 0, 0, 1), /* Solid black inner stroke */
+                3px 3px 0px rgba(0, 0, 0, 1); /* Stark, darker shadow */
+            }
+
+        .BoxInputTitleBox {
+            display: flex;
+            justify-content: space-between; 
         }
+
+
+        .tooltip-under {
+            position: relative;
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        .tooltip-under .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #9D9D9D;
+            color: #fff;
+            text-align: left, top;
+            border: 2px solid white;
+            border-radius: 0px;
+            padding: 4px 4px;
+            position: absolute;
+            z-index: 1;
+            bottom: -100px; /* Distance above the icon */
+            left: -120px; /* Center the tooltip */
+
+            opacity: 0;
+            margin-left: -60px; /* Use half of the width (set above) to center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+         }
+
+         .tooltip-under .tooltip-text a {
+            text-decoration: underline;
+            color: white;
+
+            
+         }
+
+        .tooltip-under:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+         }
+
+
+
+        .tooltip-next-to {
+            position: relative;
+            display: inline-block;
+            font-size: 12px;
+            }
+
+        .tooltip-next-to .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #9D9D9D;
+            color: #fff;
+            text-align: left, top;
+            border: 2px solid white;
+            border-radius: 0px;
+            padding: 4px 4px;
+            position: absolute;
+            z-index: 1;
+            bottom: 150%; /* Distance above the icon */
+            left: 50%; /* Center the tooltip */
+            transform: translateX(-50%); /* Shifts the tooltip to be centered with the icon */
+            opacity: 0;
+            margin-left: -60px; /* Use half of the width (set above) to center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+         }
+
+
+
+        .tooltip-next-to:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+         }
+
+
+        .tooltip-above {
+            position: relative;
+            display: inline-block;
+            font-size: 12px;
+          }
+
+        .tooltip-above .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #9D9D9D;
+            font-size: 12px;
+            color: #fff;
+            text-align: left, top;
+            border: 2px solid white;
+            border-radius: 0px;
+            padding: 4px 4px;
+            position: absolute;
+            z-index: 1;
+            bottom: 0%; /* Distance above the icon */
+            left: -100px; /* Center the tooltip */
+            
+            opacity: 0;
+            margin-left: -60px; /* Use half of the width (set above) to center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+
+
+        .tooltip-above:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
+
+
+
 
         #jobTitleInput::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
             color: gray; /* Placeholder text color */
@@ -25,91 +152,454 @@
             color: gray;
         }
 
-        .job-title-container {
+
+
+
+        .job-title-container { display: inline-block;
             margin-bottom: 10px;
         }
 
-        #okButton {
-            padding: 5px 10px;
-            font-size: 14px;
-        }
+      
+        .textbox, input, textarea {
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 14px;                              
+            color: black;      
+            padding: 5px;
+            margin-right: 0px;
+            border: 2px solid black;
+            outline: none; 
+            border-radius: 0px;
+            margin-bottom: 0px;
+            background-color: #FFA6F6;
+            box-sizing: border-box;
+            box-shadow: 1px 1px 0px rgba(0, 0, 0, 1);
+            width: 220px;
+             }
 
-        button:disabled {
-            background-color: #ccc;
-        }
+
+        
 
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
             background-color: #F0F2F5;
-            margin: 0;
-            padding: 20px;
-            color: #1C1E21;
+            margin-top: 2px;
+            margin: 10px; /* Ensure some space for the shadow */
+            padding: 7px;
+            padding-top: 10px;
+            min-width: 290px;
+            color: #1C1E21; /* Ensure text color is readable */
             font-size: 14px;
-        }
+            border: 2px solid black;
+            border-radius: 5px;
+            overflow: hidden; /* Ensures no scroll issues caused by pseudo-element */
+            }
+
 
         .header {
-            display: flex;
+            color: black;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            font-size: 16px;
+            padding: 7px;
+            margin-right: 5px;
+            nmargin-top: 0px;
+            background-color: #A8A6FF;
+            color: black;
+            margin-bottom: 9px;
+            font-weight: 900;
+            border: 3px solid; 
+            border-radius: 0px;
+            box-shadow: 
+            inset 0 0 0 0px rgba(0, 0, 0, 1), /* Solid black inner stroke */
+            3px 3px 0px rgba(0, 0, 0, 0.8); /* Stark, darker shadow */
+
         }
 
-        .header h1 {
-            color: #1877F2;
+        .joblistingsparentcontainer {
+            justify-content: space-between; 
+        }
+
+
+        .joblistingsheaderbackground {
+            padding: 6px;
+            margin-right: 5px;
+            font-size: 14px;
+            padding-right: 10px;
+            padding-left: 7px;
+            border-top: 3px solid black;   
+            border-right: 3px solid black;  
+            border-left: 3px solid black;   
+            border-bottom: none; 
+            border-top-left-radius: 5px;     
+            border-top-right-radius: 5px;    
+            border-bottom-left-radius: 0;   
+            border-bottom-right-radius: 0;
+            margin-bottom: 0px;
+            font-weight: 500;
+            background-color: #B8FF9F;
+            box-shadow: 
+                inset 0 0 0 0px rgba(0, 0, 0, 1), /* Solid black inner stroke */
+                3px 3px 0px rgba(0, 0, 0, 1); /* Stark, darker shadow */
+            
+            }
+
+        .joblistingsheader {
+            display: flex; 
+            
+            justify-content: space-between; 
+            align-items: left;
+            align-items: center; 
+            padding-right: 5px;
+
+            width: 100%;
+            }
+
+        .joblistingsheaderbuttons {
+            display: flex; 
+            gap: 2px;
+            justify-content: right; 
+            align-items: center; 
+            width: 100%;
+            }
+
+
+
+
+         button {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #79F7FF;
+            border: 2px solid black;
+            border-radius: 4px;
+            color: black;
+            padding: 6px 12px;
+            margin-left: 0px;
+            margin-top: 0px;
+            margin-bottom: 2px;    
+            font-weight: 250;
             font-size: 12px;
-            margin: 0;
-        }
-
-        .button-container {
-            display: flex;
-        }
-
-        button {
-            background-color: #1877F2;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            padding: 8px 16px;
-            margin-left: 4px;
-            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            box-shadow: 1px 1px 0px rgba(0, 0, 0, 1);
+            transition: background-color 0s ease;
+
         }
 
-        button:hover {
-            background-color: #165DB6;
+
+
+
+        button[disabled] {
+            color: #676767; /* Grey text */
+            background-color: #D4D4D4; /* Light grey background */
+            border-color: #727272; /* Grey border */
+            box-shadow: none;
+            margin-bottom: 0px;
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0);
+
         }
 
-        button#stopButton {
-            background-color: #E4E6EB;
-            color: #050505;
+        button:hover:not([disabled]) {
+            border: 2px #727272; 
+            border-radius: 0px; 
+            background-color: #00D1DE;
+            color: black;
+            border: 2px solid black;
+            border-radius: 4px;
+        }
+        
+
+
+        .button-highlight {
+                animation: highlight 0.5s ease-out;
+            }
+
+            @keyframes highlight {
+                from {
+                    background-color: #FF2626;
+                }
+                to {
+                    background-color: initial;
+                }
+            }
+        
+        .small-button-container {
+            display: flex;
+            gap: 4px;
+            align-items: top;
+            margin-top: 5px;
+            padding-bottom: 2px;
+            margin-bottom: 5px;
+
         }
 
-        button#stopButton:hover {
-            background-color: #B0B3B8;
+
+            .thin-button {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #79F7FF;
+            border: 1px solid black;
+            border-radius: 4px;
+            color: black;
+            padding: 4px 6px;
+            margin-left: 2px;
+            margin-top: 2px;
+            margin-bottom: 2px;
+            font-weight: 250;
+            font-size: 10px;
+            cursor: pointer;
+            box-shadow: 1px 1px 0px rgba(0, 0, 0, 1);
+            transition: background-color 0s ease;
+        }
+
+
+        .thin-button [disabled] {
+            color: #676767; /* Grey text */
+            background-color: #D4D4D4; /* Light grey background */
+            border-color: #727272; /* Grey border */
+        }
+
+        .thin-button:hover:not([disabled]) {
+            border-radius: 0px; 
+            background-color: #00D1DE;
+            color: black;
+            border: 1px solid black;
+            border-radius: 4px;
+        }
+
+        .thin-delete-button {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #79F7FF;
+            border: 1px solid black;
+            border-radius: 4px;
+            color: black;
+            padding: 4px 6px;
+            margin-left: 2px;
+            margin-top: 2px;
+            font-weight: 250;
+            font-size: 10px;
+            cursor: pointer;
+            transition: background-color 0s ease;
+        }
+
+
+        .thin-delete-button [disabled] {
+            color: #676767; /* Grey text */
+            background-color: #D4D4D4; /* Light grey background */
+            border-color: #727272; /* Grey border */
+        }
+
+        .thin-delete-button:hover:not([disabled]) {
+            border-radius: 0px; 
+            background-color: #FF2626;
+            color: white;
+            border: 1px solid black;
+            border-radius: 4px;
+        }
+
+ 
+
+
+        .textbox-container {
+            display: flex;
+            align-items: left;
+            margin-top: 5px;
+            color: black;
+            font-weight: 900;
+            margin-bottom: 5px; 
+            border: 0px solid black;
+
+        }
+
+        .textbox-container::placeholder, input::placeholder, textarea::placeholder {
+            color:gray;
+        }
+
+   
+       
+        .subtitle {
+            display: flex;
+            justify-content: space-between; 
+            align-items: left, top;
+            margin-top: 2px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            font-size: 12px ;
+            gap: 5px;
+        }
+
+        .credits {
+            align-items: left, top;
+            margin-top: 2px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            font-size: 12px ;
+        }
+
+        .credits a {
+            color: black; /* Set text color to black */
+            text-decoration: underline; 
+            font-weight: 250; /* As previously defined, or adjust as necessary */
+            }
+
+
+      
+
+        .open-all-details {
+            padding: 0px 0px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+
+        .openallbutton {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #79F7FF;
+            border: 1px solid black;
+            border-radius: 4px;
+            color: black;
+            padding: 4px; /* Remove padding to control dimensions more explicitly */
+            margin-left: 0px;
+            margin-top: 0px;
+            font-weight: 150;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0s;
+        }
+
+        .openallbutton [disabled] {
+            color: #676767; /* Grey text */
+            background-color: #D4D4D4; /* Light grey background */
+            border-color: #727272; /* Grey border */
+        }
+
+        .openallbutton:hover:not([disabled]) {
+            border-radius: 0px; 
+            background-color: #00D1DE;
+            color: black;
+            border: 1px solid black;
+            border-radius: 4px;
         }
 
         .job-listing {
-            background: #FFFFFF;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 16px;
-            margin-bottom: 16px;
+            background: #FFE500;
+            border: 3px solid black;
+            border-radius: 0px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            padding-bottom: 5px;
+            padding-right: 5px;
+            padding-left: 5px;
+            padding-top: 0px;
+            margin-bottom: 10px;
+            width: 250px;
+            box-shadow: 
+                inset 0 0 0 0px rgba(0, 0, 0, 1), /* Solid black inner stroke */
+                2px 2px 0px rgba(0, 0, 0, 1); /* Stark, darker shadow */
+            }
+
+        .job-listing-header {
+            display: flex;
+            border-bottom: 2px solid black;
+            justify-content: space-between;
+            align-items: top, left;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            gap: 5px;
+            padding-right: 5px;
         }
+
+        .job-listings-header-job-title {
+            display: flex;
+            align-items: top; /* Ensures the emoji and job title are aligned on the same line */
+            gap: 5px;
+        }
+
+        .job-listing-title {
+            font-weight: bold;
+        }
+
+
+
+        .emoji-container{
+            padding: 0px;
+        }
+
+        .details-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .job-listing-section {
+            margin-bottom: 5px;
+        }
+
 
         .job-listing h3 {
             margin-top: 0;
-            color: #050505;
+            color: #1877F2;
             font-size: 16px;
         }
 
-        .job-listing a {
-            color: #1877F2;
+       
+
+        .jobtitle {
+            color: black;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 250;
         }
 
-        .job-listing a:hover {
+        .jobtitle a {
+            color: black; /* Set text color to black */
+            text-decoration: underline; 
+            font-weight: 250; /* As previously defined, or adjust as necessary */
+            }
+
+        .jobtitle a:hover, .jobtitle a:active, .jobtitle a:visited, .jobtitle a:focus {
+            color: black; /* Ensure color remains consistent in all states */
+            text-decoration: none; /* Optional: Keeps the link without underline on hover/active */
+        }
+
+        .job-detail-text {
+            color: black;
+            text-decoration: none;
+            font-weight: 250;
+        }
+
+
+        .job-listing-detail-element {
+            display: flex;
+            flex-direction: row;
+            color: black;
+            text-decoration: none;
+            font-weight: 500;
+            gap: 7px;
+        }
+
+        .job-listing-detail-element a {
+            color: black; /* Set text color to black */
+            text-decoration: underline; /* Remove underline from links */
+            font-weight: 250; /* Adjust font weight as needed */
+            }
+
+        .location {
+            color: black;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .person {
+            color: black;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .job-listing b {
+            color: black;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .job-listing b:hover {
             text-decoration: underline;
         }
 
@@ -118,38 +608,151 @@
             text-align: center;
             margin-top: 12px;
             padding: 10px;
-            background-color: #42B72A;
-            color: white;
+            background-color: #79F7FF;
+            color: black;
+            font-weight: 900;
             border-radius: 5px;
-            transition: background-color 0.2s ease;
+            border: 3px solid black;
+            border-radius: 0px;
+            transition: background-color 0s ease;
         }
 
         .job-listing .open-all:hover {
-            background-color: #36A420;
+            color: black;
+            background-color: #00D1DE;
+        }
+
+
+        .tooltip-icon {
+            width: 75%;
+            height: 75%;
+            cursor: pointer;
+
+        }
+        .tooltip-icon-in-line {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            margin-bottom: -3px;
         }
     </style>
 </head>
+
 <body>
+
+    <!-- Title -->
     <div class="header">
-        <h1>LinkedIn Job Network Search</h1>
+        <label> InNetwork Job Finder </label>
     </div>
 
-    <div class="job-title-container">
-        <input type="text" id="jobTitleInput" placeholder="Enter Job Title...">
-        <button id="ConfirmJobTitleButton">Confirm Job Title</button>
-        <button id="clearJobTitleButton">Clear Job Title</button>
-        <span id="currentJobTitle">Currently set to: None</span>
+
+    <!-- Intro box -->
+    <div class="BoxInput">
+        <label for="intro">This extension searches for jobs at companies that are in your (extended) LinkedIn network. Launch it in someone's connections list.</label>
+        <div class="tooltip-under">
+            <img class="tooltip-icon-in-line" src="images/tooltip.svg" alt="Info">
+            <span class="tooltip-text">Visit a friend's or your own contact list (look for '500+ connections' under someone's profile picture) and filter results by location, industry, job title, etc. URL must include '/search/results/'. Skips companies screened in the last 24 hours and profiles viewed in the last week. Some people choose not to make their connections public.</span>
+        </div>
+        </div>
+
+
+    <!-- Job Title Input -->
+    <div class="BoxInput">
+        <div class ="BoxInputTitleBox">
+        <label for="profilevisists">Enter job title(s)</label>
+<div class="tooltip-under">
+                <img class="tooltip-icon" src="images/tooltip.svg" alt="Info">
+                <span class="tooltip-text">Separate multiple job titles by comma.
+Finds jobs on companies' abbreviated job pages. These pages show up to 2 openings that most align with your job preferences as indicated in your LinkedIn profile.</span>
+            </div>
+        </div>
+
+        <div class="textbox-container">
+            <input type="text" id="jobTitleInput" placeholder="Job title(s)...">
+
+        
+        </div>
+        <div class="subtitle">
+         
+            <span id="currentJobTitle">Current search term:</span>
+            
+            
+
+
+
+        </div>
+        <div class="small-button-container">
+            <button id="confirmJobTitleButton" disabled>Set</button>
+            <button id="clearJobTitleButton" disabled>Clear</button>
+        </div>
+    </div>
+    <!-- Profile Limit -->
+    <div class="BoxInput">
+        <div class ="BoxInputTitleBox">
+            <label for="maxTabs">Limit profile visits/day</label>
+                <div class="tooltip-under">
+                    <img class="tooltip-icon" src="images/tooltip.svg" alt="Info">
+                    <span class="tooltip-text">Limits how many profiles are opened in a 24 hour period. Start with 300/day and increase to 1000/day over the course of a week. Avoid using LinkedIn on another device at the same time. As a LinkedIn Premium member, set your <a href="https://www.linkedin.com/help/linkedin/answer/a568195" target="_blank">profile visibility</a> to anonymous. Use at your own risk, and reduce this number if you get a warning.</span>
+                </div>
+          </div>
+                    <div class="textbox-container">
+                        <input type="number" id="maxProfilesInput" min="1" placeholder="Visits/24h...">
+                    </div>
+                    <div class="subtitle">
+                        <span id="openedProfilesCount">... profiles visited in the last 24 hours.</span>  
+                    </div>
+      
+
+        <!-- Max Number of Profiles Buttons -->
+        <div class="small-button-container">
+            <button id="saveMaxNoOfProfiles" disabled>Set</button>
+            <button id="clearMaxNoOfProfiles" disabled>Clear</button>
+        </div>
+
     </div>
 
-    <div class="button-container">
-        <button id="loadButton">Load</button>
-        <button id="stopButton">Stop</button>
-        <button id="clearButton">Clear</button>
+    <!-- Load Script -->
+    <div class="BoxInput">
+        <label>Start search</label>
+        <div class="small-button-container">
+            <button id="loadButton" disabled>Load</button>
+            <button id="stopButton" disabled>Stop</button>
+        </div>
+        <div class="subtitle">
+            <span id="loadbuttonwarning">Ready to launch!</span>
+            </div>
+
     </div>
-    <button id="downloadCsvButton">Download CSV</button>
-    <div id="jobListingsContainer">
-        <!-- Job listings will be injected here -->
+
+
+
+
+    <div class="joblistingsparentcontainer">
+        <div class="joblistingsheaderbackground">
+            <div class="joblistingsheader">
+                <div class="left-element">
+                    <span id="jobsFoundCount">No jobs found yet.</span>
+                </div>
+                <div class="right-element">
+                    <div class="joblistingsheaderbuttons">
+                        <button id="downloadCsvButton" class="thin-button" disabled>Download</button>
+                        <button id="clearButton" class="thin-delete-button" disabled>Delete</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="BoxInput">
+            <div id="jobListingsContainer">
+                <!-- Job listings-->
+            </div>
+        </div>
     </div>
     <script src="popup.js"></script>
+    <span class="credits">
+    <span> Built by JM in NYC. Design inspired by <a href="https://www.figma.com/community/file/1209478811951634271" target="_blank">M. Digdaya.</a></span>
+    </span>
 </body>
+
 </html>
