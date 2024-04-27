@@ -1,5 +1,5 @@
 # Linkedin Job Finder Browser Extension
-[Availabe in the chrome app store.](https://chromewebstore.google.com/detail/innetwork-job-finder/ipclfaglfigdjcfpnhpafgegpghigcog?hl=en&authuser=0)
+[Availabe in the chrome web store.](https://chromewebstore.google.com/detail/innetwork-job-finder/ipclfaglfigdjcfpnhpafgegpghigcog?hl=en&authuser=0)
 
 ## Overview
 
