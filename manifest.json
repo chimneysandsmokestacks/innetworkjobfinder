@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "InNetwork Job Finder",
-  "version": "1.0",
+  "version": "1.1.2",
+  "description": "Find people in your extended network whose companies are hiring and get introduced.",
   "permissions": [
     "activeTab",
     "scripting",
