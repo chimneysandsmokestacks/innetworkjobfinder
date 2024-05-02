@@ -28,3 +28,4 @@ LinkedIn is a popular platform for finding connections to companies that are hir
 ## Getting Started
 To install this extension, download the files and put them all in one folder. Then open chrome://extensions in your browser and select 'Load Unpacked'. Select the folder.
 Open someone's public connections list (usually by clicking the "500+ connections" link underneath their profile photo), and tailor your search to a specific industry or location via Linkedin's native filters. Open the extension and set a job title, then click Load.
+Alternatively: [Availabe in the chrome web store.](https://chromewebstore.google.com/detail/innetwork-job-finder/ipclfaglfigdjcfpnhpafgegpghigcog?hl=en&authuser=0)
