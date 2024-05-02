@@ -14,7 +14,7 @@ LinkedIn is a popular platform for finding connections to companies that are hir
 
 ### Current Limitations and Potential Improvements
 * Parses jobs from companies' abbreviated job pages. These job pages surface 2-3 jobs that most align with the user's job preferences as indicated in their LinkedIn profile.
-* Because of how Linkedin's DOM dynamic DOM, the job title of the person working at a company with openins may not be accurate.
+* Because of how Linkedin's DOM dynamic DOM, the job title of the person who works at a company with opening may not be accurate.
 
 ### Features
 * Allows the user to set multiple job titles.
