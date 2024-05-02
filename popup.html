@@ -30,6 +30,7 @@
             position: relative;
             display: inline-block;
             font-size: 12px;
+            
         }
 
         .tooltip-under .tooltip-text {
@@ -62,6 +63,7 @@
         .tooltip-under:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
+
          }
 
 
@@ -83,8 +85,8 @@
             padding: 4px 4px;
             position: absolute;
             z-index: 1;
-            bottom: 150%; /* Distance above the icon */
-            left: 50%; /* Center the tooltip */
+            bottom: -50px; /* Distance above the icon */
+            left: 80px; /* Center the tooltip */
             transform: translateX(-50%); /* Shifts the tooltip to be centered with the icon */
             opacity: 0;
             margin-left: -60px; /* Use half of the width (set above) to center the tooltip */
@@ -648,10 +650,10 @@
 
     <!-- Intro box -->
     <div class="BoxInput">
-        <label for="intro">This extension searches for jobs at companies that are in your (extended) LinkedIn network. Launch it in someone's connections list.</label>
-        <div class="tooltip-under">
+        <label for="intro">Start by navigating to someone's LinkedIn connections list. The extension will search for your desired job in that person's network so you can ask for an introduction. Jobs will appear below.</label>
+        <div class="tooltip-next-to">
             <img class="tooltip-icon-in-line" src="images/tooltip.svg" alt="Info">
-            <span class="tooltip-text">Visit a friend's or your own contact list (look for '500+ connections' under someone's profile picture) and filter results by location, industry, job title, etc. URL must include '/search/results/'. Skips companies screened in the last 24 hours and profiles viewed in the last week. Some people choose not to make their connections public.</span>
+            <span class="tooltip-text">Visit a friend's connections list (look for '500+ connections' under someone's LinkedIn profile picture) and filter results by country, industry, etc. URL must include '/search/results/'. Skips companies screened in the last 12 hours and profiles viewed in the last week. Some people choose not to make their connections public.</span>
         </div>
         </div>
 
@@ -659,7 +661,7 @@
     <!-- Job Title Input -->
     <div class="BoxInput">
         <div class ="BoxInputTitleBox">
-        <label for="profilevisists">Enter job title(s)</label>
+        <label for="profilevisists">Job title(s)</label>
 <div class="tooltip-under">
                 <img class="tooltip-icon" src="images/tooltip.svg" alt="Info">
                 <span class="tooltip-text">Separate multiple job titles by comma.
@@ -668,13 +670,13 @@ Finds jobs on companies' abbreviated job pages. These pages show up to 2 opening
         </div>
 
         <div class="textbox-container">
-            <input type="text" id="jobTitleInput" placeholder="Job title(s)...">
+            <input type="text" id="jobTitleInput" placeholder="Enter job title(s)...">
 
         
         </div>
         <div class="subtitle">
          
-            <span id="currentJobTitle">Current search term:</span>
+            <span id="currentJobTitle">Current job title(s):</span>
             
             
 
@@ -689,10 +691,10 @@ Finds jobs on companies' abbreviated job pages. These pages show up to 2 opening
     <!-- Profile Limit -->
     <div class="BoxInput">
         <div class ="BoxInputTitleBox">
-            <label for="maxTabs">Limit profile visits/day</label>
+            <label for="maxTabs">Limit profile visits</label>
                 <div class="tooltip-under">
                     <img class="tooltip-icon" src="images/tooltip.svg" alt="Info">
-                    <span class="tooltip-text">Limits how many profiles are opened in a 24 hour period. Start with 300/day and increase to 1000/day over the course of a week. Avoid using LinkedIn on another device at the same time. As a LinkedIn Premium member, set your <a href="https://www.linkedin.com/help/linkedin/answer/a568195" target="_blank">profile visibility</a> to anonymous. Use at your own risk, and reduce this number if you get a warning.</span>
+                    <span class="tooltip-text">Limits how many profiles are opened in a 24 hour time period. Start with 300 and increase to 1000 over the course of a week. Avoid using LinkedIn on another device at the same time. As a LinkedIn Premium member, set your <a href="https://www.linkedin.com/help/linkedin/answer/a568195" target="_blank">profile visibility</a> to anonymous. Use at your own risk, and reduce this number if you get a warning from LinkedIn.</span>
                 </div>
           </div>
                     <div class="textbox-container">
@@ -751,7 +753,7 @@ Finds jobs on companies' abbreviated job pages. These pages show up to 2 opening
     </div>
     <script src="popup.js"></script>
     <span class="credits">
-    <span> Built by JM in NYC. Design inspired by <a href="https://www.figma.com/community/file/1209478811951634271" target="_blank">M. Digdaya.</a></span>
+    <span> Built by JM in NYC. Styling from <a href="https://www.figma.com/community/file/1209478811951634271" target="_blank">M. Digdaya.</a></span>
     </span>
 </body>
 
