@@ -1,10 +1,9 @@
-var DEBUG = true;
+var DEBUG = false;
 chrome.runtime.onInstalled.addListener(() => {
     if (DEBUG) {
         console.log("Extension Installed.");
     }
 
-    // Retrieve and log the job title set by the user
     chrome.storage.local.get('jobTitleSetByUser', (data) => {
         if (data.jobTitleSetByUser) {
             if (DEBUG) {
@@ -20,7 +19,7 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.local.set({
         currentIndex: 0
     }, () => {
-        // Retrieve and log the currentIndex after setting it
+
         chrome.storage.local.get('currentIndex', function(result) {
             if (DEBUG) {
                 console.log(`Initialized currentIndex to`, result.currentIndex);
@@ -30,17 +29,16 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 const stabilizationTimeouts = {};
-const STABILIZATION_DELAY = 3000; // Delay to stabilize website
-let jobDetails = []; // Array to store the details of jobs found
-let monitoredTabs = {}; // Store tabs that need to be monitored for navigation to "/jobs/"
+const STABILIZATION_DELAY = 3000; 
+let jobDetails = []; 
+let monitoredTabs = {}; 
 var tabProfileLinks = {};
 
-//new helper function with stop functionality
 function injectScript(tabId) {
     if (DEBUG) {
         console.log("Attempting to inject script into tab ID:", tabId);
     }
-    // Check if the stop flag is set for this tab
+
     if (monitoredTabs[tabId] && monitoredTabs[tabId].stopInjection) {
         if (DEBUG) {
             console.log("Injection stopped by user request for tab ID:", tabId);
@@ -49,7 +47,7 @@ function injectScript(tabId) {
             action: "operationHalted",
             tabId: tabId
         });
-        // Reset the flag after handling the stop request
+
         monitoredTabs[tabId].stopInjection = false;
         return;
     }
@@ -84,12 +82,11 @@ function injectScript(tabId) {
     });
 }
 
-
 let isUpdatingJobDetails = false;
 
 function updateJobDetails(message, sendResponse) {
     if (isUpdatingJobDetails) {
-        setTimeout(() => updateJobDetails(message, sendResponse), 100); // Retry after a short delay
+        setTimeout(() => updateJobDetails(message, sendResponse), 100); 
         return;
     }
     isUpdatingJobDetails = true;
@@ -121,47 +118,43 @@ function updateJobDetails(message, sendResponse) {
     });
 }
 
-
-
 let frame = 0;
-const frameRate = 50; // Frame rate in milliseconds
+const frameRate = 50; 
 const frames = [
     '/images/logo1.png', '/images/logo2.png', '/images/logo3.png',
     '/images/logo4.png', '/images/logo5.png', '/images/logo6.png',
     '/images/logo7.png', '/images/logo8.png', '/images/logo9.png',
     '/images/logo10.png', '/images/logo11.png'
 ]
-let animationInterval = null; // Initialize to null for clarity
+let animationInterval = null; 
 
 function animateIcon() {
     if (frames.length > 0) {
-        frame = (frame + 1) % frames.length; // Cycle through frames
+        frame = (frame + 1) % frames.length; 
         chrome.action.setIcon({
             path: frames[frame]
-        }); // Update to use 'chrome.action' API
-        animationInterval = setTimeout(animateIcon, frameRate); // Schedule the next frame update
+        }); 
+        animationInterval = setTimeout(animateIcon, frameRate); 
     }
 }
 
 function startAnimation() {
     if (!animationInterval) {
-        animateIcon(); // Start animation
+        animateIcon(); 
     }
 }
 
 function stopAnimation() {
     if (animationInterval) {
-        clearTimeout(animationInterval); // Stop the animation
-        animationInterval = null; // Reset the interval ID
-        // Set the icon to the next image in the sequence after the last one shown
+        clearTimeout(animationInterval); 
+        animationInterval = null; 
+
         const nextImageIndex = (frame + 1) % frames.length;
         chrome.action.setIcon({
             path: frames[nextImageIndex]
         });
     }
 }
-
-
 
 function closeTabAndAdvanceIndex(tabId) {
     if (DEBUG) {
@@ -174,7 +167,7 @@ function closeTabAndAdvanceIndex(tabId) {
             }
             return;
         }
-        // Remove the tab
+
         chrome.tabs.remove(tabId, () => {
             if (DEBUG) {
                 console.log("Current tab closed.");
@@ -182,14 +175,11 @@ function closeTabAndAdvanceIndex(tabId) {
             const openedFromCurrentSearchTabId = monitoredTabs[tabId]?.openedFromCurrentSearchTabId;
             const currentSearchIndex = monitoredTabs[openedFromCurrentSearchTabId]?.currentIndex || 0;
 
-
-            // Ensure that searchTabId is defined and then increment index for it
             if (openedFromCurrentSearchTabId) {
-                // Increment the index in monitoredTabs object
+
                 const nextIndex = currentSearchIndex + 1;
                 monitoredTabs[openedFromCurrentSearchTabId].currentIndex = nextIndex;
 
-                // Check the existence of search tab
                 chrome.tabs.get(openedFromCurrentSearchTabId, (searchTab) => {
                     if (chrome.runtime.lastError) {
                         if (DEBUG) {
@@ -198,7 +188,6 @@ function closeTabAndAdvanceIndex(tabId) {
                         return;
                     }
 
-                    // If the closed tab was active, switch to the stored search results tab
                     if (closingTab.active) {
                         chrome.tabs.update(openedFromCurrentSearchTabId, {
                             active: true
@@ -208,7 +197,6 @@ function closeTabAndAdvanceIndex(tabId) {
                         }
                     }
 
-                    // Reinject content script and continue operation on the search tab
                     injectScript(openedFromCurrentSearchTabId);
                     if (DEBUG) {
                         console.log(`Sending message to open next profile on tab: ${openedFromCurrentSearchTabId}`);
@@ -224,25 +212,20 @@ function closeTabAndAdvanceIndex(tabId) {
     });
 }
 
-
-//listener function for messages from content.js or popup.js
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (DEBUG) {
         console.log("Background script received a message from:", sender, message);
     }
     switch (message.action) {
 
-
-
         case "openNewTab":
             if (message.url) {
-                // Log the tab ID of the sender if available
+
                 if (DEBUG) {
                     console.log("Opening new tab from sender tab ID:", sender.tab.id);
                 }
                 let senderTabId = sender.tab.id;
 
-                // Check the stop flag before proceeding
                 if (monitoredTabs[senderTabId]?.stopInjection) {
                     if (DEBUG) {
                         console.log("Stop flag is set for this tab. Halting operations.");
@@ -252,36 +235,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         error: "Operation stopped by user."
                     });
 
-                    // Send a message to popup.js that the operation was halted
                     chrome.runtime.sendMessage({
                         action: "operationHalted",
                         message: "Operation halted due to stop flag."
                     });
 
-                    return true; // Ensure the messaging channel is closed properly
+                    return true; 
                 }
 
-                // Check if we have a stored window ID to open the new tab in
                 let windowId = monitoredTabs[senderTabId]?.searchWindowId || chrome.windows.WINDOW_ID_CURRENT;
                 if (DEBUG) {
                     console.log("Using window ID:", windowId);
                 }
 
-                // Get the current records of tabs opened and the maximum allowed
                 chrome.storage.local.get(['tabOpeningRecords', 'maxNumberOfTabs'], (data) => {
                     let tabOpeningRecords = data.tabOpeningRecords || [];
-                    let maxNumberOfTabs = data.maxNumberOfTabs || 1000; // Use a sensible default if not set
+                    let maxNumberOfTabs = data.maxNumberOfTabs || 1000; 
 
-                    // Filter records to keep only those within the last 24 hours
                     const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
                     tabOpeningRecords = tabOpeningRecords.filter(record => record.time > oneDayAgo);
 
                     if (tabOpeningRecords.length < maxNumberOfTabs) {
-                        // Still under the limit, open the new tab
+
                         chrome.tabs.create({
                             windowId: windowId,
                             url: message.url,
-                            active: true // Open in background
+                            active: true 
                         }, (newTab) => {
                             if (chrome.runtime.lastError) {
                                 if (DEBUG) {
@@ -293,11 +272,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                                 });
                                 return;
                             }
-                            // Log the new tab ID
+
                             if (DEBUG) {
                                 console.log("New tab created with ID:", newTab.id);
                             }
-                            // Add the new tab's opening record and update the records
+
                             tabOpeningRecords.push({
                                 tabId: newTab.id,
                                 time: Date.now()
@@ -346,9 +325,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
             return true;
 
-
         case "closeCurrentTab":
-            // Use the helper function to close the tab and handle the index incrementation
+
             closeTabAndAdvanceIndex(sender.tab.id);
             break;
 
@@ -362,7 +340,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
             break;
 
-
         case "foundJob":
             updateJobDetails(message, sendResponse);
             return true;
@@ -371,31 +348,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             if (DEBUG) {
                 console.log(`Pausing for ${message.duration} seconds...`);
             }
-            startAnimation(); // Start the animation when pause starts
+            startAnimation(); 
             setTimeout(() => {
-                stopAnimation(); // Stop the animation after the pause duration
-            }, message.duration * 1000); // Convert seconds to milliseconds
+                stopAnimation(); 
+            }, message.duration * 1000); 
             break;
-
-
-
 
         case "logInfo":
             if (DEBUG) {
                 console.log(message.info);
-            } // Log the information received from content.js
+            } 
             sendResponse({
                 status: "Information logged successfully"
             })
             return true;
             break;
 
-
         case "requestJobDetails":
-            // Retrieve job details from local storage and send them to the requester
+
             chrome.storage.local.get('jobDetails', (data) => {
                 if (data.jobDetails) {
-                    //  if (DEBUG) {console.log("Sending job details to requester:", JSON.stringify(data.jobDetails, null, 2));}
+
                     sendResponse({
                         status: "Job details sent",
                         jobDetails: data.jobDetails
@@ -412,9 +385,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
             return true;
 
-
         case "clearJobDetails":
-            // Clear the jobDetails in chrome.storage.local
+
             chrome.storage.local.set({
                 jobDetails: []
             }, () => {
@@ -422,14 +394,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     console.log("Cleared job details in storage.");
                 }
             });
-            // Retrieve the active tab in the current window to send the index reset message
+
             chrome.tabs.query({
                 active: true,
                 currentWindow: true
             }, (tabs) => {
                 if (tabs.length > 0 && tabs[0].id) {
                     let currentTabId = tabs[0].id;
-                    // Send message to update the index for the current tab to 0
+
                     sendMessageToBackground({
                         action: "updateIndex",
                         tabId: currentTabId,
@@ -449,26 +421,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
             return true;
 
-
-
-
         case "loadContentScript":
             if (message.tabId && message.windowId) {
-                // Initialize or reset the monitoredTabs and tabProfileLinks entries for this tab
+
                 monitoredTabs[message.tabId] = {
                     injected: false,
                     navigatedByExtension: false,
-                    currentIndex: 0, // Initialize the index to 0
+                    currentIndex: 0, 
                     currentSearchTabId: message.tabId,
                     searchWindowId: message.windowId
                 };
-                tabProfileLinks[message.tabId] = []; // Reset the tabProfileLinks array for this tab
+                tabProfileLinks[message.tabId] = []; 
                 if (DEBUG) {
                     console.log(`Preparing to inject content script into tab: ${message.tabId}`);
                 }
-                // Inject the content script into the  tab
+
                 injectScript(message.tabId, () => {
-                    // Check for injection errors
+
                     if (chrome.runtime.lastError) {
                         if (DEBUG) {
                             console.error("Error injecting content script:", chrome.runtime.lastError.message);
@@ -482,7 +451,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                             console.log("Content script injected successfully into tab: " + message.tabId);
                         }
 
-                        // Update the monitoredTabs object for the current tab after successful injection
                         monitoredTabs[message.tabId].injected = true;
                         monitoredTabs[message.tabId].navigatedByExtension = false;
 
@@ -506,7 +474,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             return true;
 
         case "stopScript":
-            const tabId = message.tabId; // Get tabId directly from the message
+            const tabId = message.tabId; 
             if (tabId) {
                 if (DEBUG) {
                     console.log("Setting stop flag for tab ID:", tabId);
@@ -517,7 +485,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         stopInjection: false
                     };
                 }
-                monitoredTabs[tabId].stopInjection = true; // Set the stop flag
+                monitoredTabs[tabId].stopInjection = true; 
                 sendResponse({
                     status: "Stop flag set for tab ID: " + tabId
                 });
@@ -540,9 +508,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
             return true;
 
-
-
-
         case "storeProfileLinks":
             if (sender.tab.id) {
                 tabProfileLinks[sender.tab.id] = message.profileLinks;
@@ -552,10 +517,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
             return true;
 
-
         case "clearProfileLinks":
             if (sender.tab.id && tabProfileLinks[sender.tab.id]) {
-                tabProfileLinks[sender.tab.id] = []; // Clear the links array for the tab
+                tabProfileLinks[sender.tab.id] = []; 
                 sendResponse({
                     status: "Profile links cleared successfully"
                 });
@@ -563,7 +527,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
 
         case "getStoredProfileLinks":
-            // Directly use sender.tab.id to access the tab ID from the sender of the message
+
             if (sender.tab && sender.tab.id) {
                 const tabId = sender.tab.id;
                 if (DEBUG) {
@@ -598,11 +562,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
             return true;
 
-
-
         case "getCurrentIndex":
             if (sender.tab && sender.tab.id && monitoredTabs[sender.tab.id]) {
-                // Retrieve the current index from the monitoredTabs object
+
                 const currentIndex = monitoredTabs[sender.tab.id].currentIndex;
                 sendResponse({
                     currentIndex: currentIndex
@@ -620,22 +582,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
             break;
 
-
-
         case "updateIndex": {
-            const tabId = sender.tab.id; // Get the tab ID from the message sender
-            const windowId = sender.tab.windowId; // Get the window ID from the message sender
+            const tabId = sender.tab.id; 
+            const windowId = sender.tab.windowId; 
 
-            // Check if the tab ID is already monitored, and update or initialize its index
             if (!monitoredTabs[tabId]) {
                 monitoredTabs[tabId] = {
-                    injected: false, // assuming you might also track if content scripts are injected
-                    navigatedByExtension: true, // flag for navigation checks
-                    currentIndex: message.newIndex, // set the new index from the message
-                    windowId: windowId // store the window ID
+                    injected: false, 
+                    navigatedByExtension: true, 
+                    currentIndex: message.newIndex, 
+                    windowId: windowId 
                 };
             } else {
-                // Update the existing entry with the new index
+
                 monitoredTabs[tabId].currentIndex = message.newIndex;
             }
 
@@ -643,7 +602,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 console.log(`Index updated to ${message.newIndex} for tab ${tabId} in window ${windowId}.`);
             }
             const updatedIndex = monitoredTabs[tabId].currentIndex
-            // Optionally, respond back to the content script if needed
+
             sendResponse({
                 status: "Index updated",
                 newIndex: updatedIndex
@@ -651,24 +610,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         return true;
 
-
-
         case "setPageNavigatedByExtensionFlag":
-            // Check if the sender has a tab object and an ID
+
             if (sender.tab && sender.tab.id) {
-                let tabId = sender.tab.id; // This is the tab ID from which the message was sent
-                // Now you can use tabId to perform actions on this tab
-                // For instance, setting a flag specific to this tab in monitoredTabs
+                let tabId = sender.tab.id; 
+
                 if (!monitoredTabs[tabId]) {
-                    monitoredTabs[tabId] = {}; // Initialize as an empty object if it does not exist
+                    monitoredTabs[tabId] = {}; 
                 }
-                // Set or update the pageNavigatedByExtension flag
+
                 monitoredTabs[tabId].pageNavigatedByExtension = message.flag;
                 if (DEBUG) {
                     console.log(`Flag pageNavigatedByExtension set to ${message.flag} for tab: ${tabId}`);
                 }
 
-                // Sending a response back to content script if necessary
                 sendResponse({
                     status: 'Flag set for PageNavigatedByExtension',
                     tabId: tabId
@@ -676,31 +631,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             } else {
 
             }
-            return true; // Keep the messaging channel open for the sendResponse callback
-
-
+            return true; 
 
         case "setNavigatedByExtensionFlag":
-            // Check if the sender has a tab object and an ID
+
             if (sender.tab && sender.tab.id) {
-                let tabId = sender.tab.id; // This is the tab ID from which the message was sent
-                // Ensure the tab entry exists or initialize it
+                let tabId = sender.tab.id; 
+
                 if (!monitoredTabs[tabId]) {
-                    monitoredTabs[tabId] = {}; // Initialize as an empty object if it does not exist
+                    monitoredTabs[tabId] = {}; 
                 }
-                // Set or update the navigatedByExtension flag
+
                 monitoredTabs[tabId].navigatedByExtension = message.flag;
                 if (DEBUG) {
                     console.log(`Flag navigatedByExtension set to ${message.flag} for tab: ${tabId}`);
                 }
 
-                // Sending a response back to content script if necessary
                 sendResponse({
                     status: 'navigatedByExtension flag set',
                     tabId: tabId
                 });
 
-                // Log the current state after updating
                 if (DEBUG) {
                     console.log(`Current state of monitoredTabs for tabId ${tabId}:`, monitoredTabs[tabId]);
                 }
@@ -709,26 +660,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     console.error('No tab ID found in the sender information');
                 }
             }
-            return true; // Keep the messaging channel open for the sendResponse callback
-
-
+            return true; 
 
         case "setInjectedFlag":
-            // Check if the sender has a tab object and an ID
+
             if (sender.tab && sender.tab.id) {
-                let tabId = sender.tab.id; // This is the tab ID from which the message was sent
-                // Now you can use tabId to perform actions on this tab
-                // For instance, setting a flag specific to this tab in monitoredTabs
+                let tabId = sender.tab.id; 
+
                 if (!monitoredTabs[tabId]) {
-                    monitoredTabs[tabId] = {}; // Initialize as an empty object if it does not exist
+                    monitoredTabs[tabId] = {}; 
                 }
-                // Set or update the navigatedByExtension flag
+
                 monitoredTabs[tabId].injected = message.flag;
                 if (DEBUG) {
                     console.log(`Flag injected set to ${message.flag} for tab: ${tabId}`);
                 }
 
-                // Sending a response back to content script if necessary
                 sendResponse({
                     status: 'injected Flag set',
                     tabId: tabId
@@ -738,11 +685,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     console.error('No tab ID found in the sender information');
                 }
             }
-            return true; // Keep the messaging channel open for the sendResponse callback
+            return true; 
 
     }
-    return true; // Keep the messaging channel open for the sendResponse callback
-
+    return true; 
 
 });
 
@@ -755,18 +701,14 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     }
 });
 
-// Listener function to monitor if tab navigated to jobs page or jobs page was invalid and produced new search results page
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete') {
-        // Clear any previous timeout to handle rapid successive updates
+
         if (stabilizationTimeouts[tabId]) {
             clearTimeout(stabilizationTimeouts[tabId]);
         }
 
-        // Set a new timeout to ensure the changes are stable before taking action
         stabilizationTimeouts[tabId] = setTimeout(() => {
-            // if (DEBUG) {console.log(`Page has completed loading on tab ${tabId}. URL: ${tab.url}`);}
-
 
             if (monitoredTabs[tabId]) {
                 const navigatedByExtension = monitoredTabs[tabId]?.navigatedByExtension;
@@ -779,20 +721,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                         console.log(`Received pageNavigatedByExtension flag for ${tabId}: ${pageNavigatedByExtension}`);
                     }
                     if (pageNavigatedByExtension) {
-                        // Inject script if pageNavigatedByExtension is true
+
                         if (DEBUG) {
                             console.log(`Page navigation recognized as legitimate in Tab ${tabId}. Injecting content script.`);
                         }
                         injectScript(tabId);
-                        monitoredTabs[tabId].pageNavigatedByExtension = false; // Reset flag after handling
+                        monitoredTabs[tabId].pageNavigatedByExtension = false; 
                     } else if (navigatedByExtension) {
-                        // Close tab and advance index if navigatedByExtension is true
+
                         if (DEBUG) {
                             console.log(`Navigation recognized as extension-triggered in Tab ${tabId}. Closing tab and advancing index.`);
                         }
                         closeTabAndAdvanceIndex(tabId);
                     } else {
-                        // Log and reset if none are true
+
                         if (DEBUG) {
                             console.log(`Navigation to a search page detected without flags in Tab ${tabId}.`);
                         }
@@ -801,18 +743,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 }
 
                 if (tab.url.includes('/jobs') && !monitoredTabs[tabId].injected) {
-                    // If the URL is a jobs page and content script has not been injected yet
+
                     if (DEBUG) {
                         console.log(`Stabilized URL '${tab.url}' for Tab ${tabId}. Injecting content script.`);
                     }
                     injectScript(tabId);
-                    monitoredTabs[tabId].injected = true; // Mark as injected to prevent further injections
+                    monitoredTabs[tabId].injected = true; 
                 }
             }
         }, STABILIZATION_DELAY)
     }
 });
-
 
 function logKnownEmployees() {
     chrome.storage.local.get('knownEmployees', (data) => {
