@@ -1,4 +1,4 @@
-var DEBUG = true;
+var DEBUG = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (DEBUG) {
@@ -41,7 +41,6 @@ const loadButton = document.getElementById('loadButton');
 const clearButton = document.getElementById('clearButton');
 const jobListingsContainer = document.getElementById('jobListingsContainer');
 
-
 function requestjobdetails() {
     chrome.runtime.sendMessage({
         action: "requestJobDetails"
@@ -68,7 +67,6 @@ function requestjobdetails() {
     });
 }
 
-
 function loadMaxNumberOfTabsDisplay() {
     chrome.storage.local.get(['maxNumberOfTabs', 'tabOpeningRecords'], function(data) {
         if (DEBUG) {
@@ -85,7 +83,7 @@ function loadMaxNumberOfTabsDisplay() {
                 ("No max number of tabs found in storage.");
             }
         }
-        // Calculates number of tabs opened in last 24h
+
         const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
         const profilesOpenedLast24Hours = (data.tabOpeningRecords || []).filter(record => record.time > oneDayAgo).length;
         maxNumberOfTabs = data.maxNumberOfTabs
@@ -107,17 +105,13 @@ function loadMaxNumberOfTabsDisplay() {
     });
 }
 
-
 function resetMaxTabsInput() {
     const maxTabsInput = document.getElementById('maxProfilesInput');
-    maxTabsInput.value = ''; // Reset the input to empty, or you can set a default value if needed
+    maxTabsInput.value = ''; 
     if (DEBUG) {
         ('maxTabsInput has been reset.');
     }
 }
-
-
-
 
 function saveMaxProfiles() {
     const maxProfilesInput = document.getElementById('maxProfilesInput'); 
@@ -143,12 +137,10 @@ function saveMaxProfiles() {
     }
 }
 
-
 function updateLoadButtonWarning() {
     const loadButtonWarning = document.getElementById('loadbuttonwarning');
     const loadButton = document.getElementById('loadButton');
 
-   
     chrome.storage.local.get(['maxNumberOfTabs', 'tabOpeningRecords'], (data) => {
         const maxTabsAllowed = data.maxNumberOfTabs;
         const openedTabsCount = (data.tabOpeningRecords || []).filter(record => {
@@ -160,14 +152,14 @@ function updateLoadButtonWarning() {
             loadButtonWarning.textContent = `${openedTabsCount}/${maxTabsAllowed} profiles opened in the past 24 hours. Increase limit to continue.`;
             loadButtonWarning.style.color = 'red';
         } else {
-           
+
             chrome.tabs.query({
                 active: true,
                 currentWindow: true
             }, (tabs) => {
                 if (tabs.length > 0) {
                     const currentUrl = tabs[0].url;
-                   
+
                     if (!currentUrl.includes("/search/results/")) {
                         loadButtonWarning.textContent = "Must be on a /search/results page, navigate to someone's Connections page.";
                         loadButtonWarning.style.color = 'red'; 
@@ -177,7 +169,7 @@ function updateLoadButtonWarning() {
                         loadButton.disabled = false; 
                     }
                 } else {
-                   
+
                     loadButtonWarning.textContent = "Error: Cannot determine the current page URL.";
                     loadButtonWarning.style.color = 'red'; 
                 }
@@ -185,7 +177,6 @@ function updateLoadButtonWarning() {
         }
     });
 }
-
 
 function clearMaxProfiles() {
     chrome.storage.local.remove(['maxNumberOfTabs'], function() {
@@ -196,10 +187,8 @@ function clearMaxProfiles() {
         resetMaxTabsInput()
         loadMaxNumberOfTabsDisplay();
 
-
     });
 }
-
 
 function updateMaxProfilesButtonState() {
     const setMaxProfilesSaveButton = document.getElementById('saveMaxNoOfProfiles');
@@ -221,18 +210,15 @@ function updateMaxProfilesButtonState() {
     });
 }
 
-
 function launchScript() {
     if (DEBUG) {
         ('Load button clicked.');
     }
 
-
     chrome.storage.local.get(['jobTitleSetByUser', 'maxNumberOfTabs'], (data) => {
         const jobTitleSet = data.jobTitleSetByUser;
         const maxTabsSet = data.maxNumberOfTabs;
 
-     
         if (!jobTitleSet || !maxTabsSet) {
             if (DEBUG) {
                 ('Missing job title or max number of tabs.');
@@ -243,7 +229,7 @@ function launchScript() {
                 jobTitleButton.classList.add('button-highlight');
                 setTimeout(() => {
                     jobTitleButton.classList.remove('button-highlight');
-                   
+
                     void jobTitleButton.offsetWidth;
                     jobTitleButton.classList.add('button-highlight');
                 }, 200);
@@ -253,7 +239,7 @@ function launchScript() {
                 maxVisitsButton.classList.add('button-highlight');
                 setTimeout(() => {
                     maxVisitsButton.classList.remove('button-highlight');
-                   
+
                     void maxVisitsButton.offsetWidth;
                     maxVisitsButton.classList.add('button-highlight');
                 }, 200);
@@ -261,12 +247,10 @@ function launchScript() {
             return;
         }
 
-      
         document.getElementById('loadButton').disabled = true;
         document.getElementById('stopButton').disabled = false;
         document.getElementById('stopButton').textContent = "Stop";
 
-     
         chrome.windows.getCurrent({}, (window) => {
             chrome.tabs.query({
                 active: true,
@@ -281,7 +265,7 @@ function launchScript() {
                         chrome.runtime.sendMessage({
                             action: "loadContentScript",
                             tabId: currentTab.id,
-                            windowId: window.id // Pass the current window ID
+                            windowId: window.id 
                         }, response => {
                             if (chrome.runtime.lastError) {
                                 console.error('Error sending loadContentScript message:', chrome.runtime.lastError.message);
@@ -305,7 +289,6 @@ function launchScript() {
         });
     });
 }
-
 
 function updateLoadButton() {
     chrome.tabs.query({
@@ -334,8 +317,6 @@ function updateLoadButton() {
         }
     });
 }
-
-
 
 function jobTitleInputReset() {
     if (jobTitleInput.value.trim()) {
@@ -407,7 +388,6 @@ function stopScript() {
     });
 }
 
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "operationHalted") {
         if (DEBUG) {
@@ -417,7 +397,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         stopButton.disabled = true;
         stopButton.textContent = "Stopped"
         document.getElementById('loadButton').disabled = false;
-        
 
     }
 });
@@ -471,7 +450,6 @@ function saveJobTitle() {
     }
 }
 
-
 function handleJobTitleTextBox() {
     if (DEBUG) {
         ("handleJobTitleTextBox called");
@@ -480,18 +458,14 @@ function handleJobTitleTextBox() {
     const jobTitle = jobTitleInput.value.trim(); 
     if (jobTitle !== '') {
 
-
         if (DEBUG) {("Job title input updated, awaiting confirmation.");}
     } else {
-
 
         if (DEBUG) {
             ("Input is empty, awaiting further input or action.");
         }
     }
 }
-
-
 
 function clearJobTitle() {
     if (DEBUG) {
@@ -506,8 +480,6 @@ function clearJobTitle() {
         }
     });
 }
-
-
 
 function clearJobTitleInput() {
     const jobTitleInput = document.getElementById('jobTitleInput');
@@ -541,7 +513,6 @@ function updateJobTitleButtonState() {
         }
     });
 }
-
 
 function updateJobTitleDisplay() {
     chrome.storage.local.get('jobTitleSetByUser', (data) => {
@@ -591,13 +562,11 @@ const createJobListing = (jobDetail) => {
     const jobListingElement = document.createElement('div');
     jobListingElement.className = 'job-listing';
 
-    
     const headerContainer = document.createElement('div');
     headerContainer.className = 'job-listing-header';
 
     const joblistingsheaderjobtitle = document.createElement('div');
     joblistingsheaderjobtitle.className = 'job-listings-header-job-title';
-
 
     const headerEmoji = document.createElement('img');
     headerEmoji.className = 'emoji-container';
@@ -606,7 +575,6 @@ const createJobListing = (jobDetail) => {
     headerEmoji.width = '15'; 
     headerEmoji.height = '15';
     joblistingsheaderjobtitle.appendChild(headerEmoji);
-
 
     const jobTitleContainer = document.createElement('div');
     jobTitleContainer.className = 'jobtitle';
@@ -618,7 +586,6 @@ const createJobListing = (jobDetail) => {
     joblistingsheaderjobtitle.appendChild(jobTitleContainer);
 
     headerContainer.appendChild(joblistingsheaderjobtitle);
-
 
     const openAllElement = document.createElement('div');
     openAllElement.className = 'open-all-details';
@@ -640,16 +607,13 @@ const createJobListing = (jobDetail) => {
     openAllElement.appendChild(openAllLink);
     headerContainer.appendChild(openAllElement);
 
-   
     jobListingElement.appendChild(headerContainer);
 
     const detailsContainer = document.createElement('div');
     detailsContainer.className = 'details-container';
 
-
     const companyContainer = document.createElement('div');
     companyContainer.className = 'job-listing-detail-element';
-
 
     const companyIcon = document.createElement('img');
     companyIcon.className = 'emoji-container';
@@ -667,13 +631,9 @@ const createJobListing = (jobDetail) => {
     companyContainer.appendChild(companyLink);
     detailsContainer.appendChild(companyContainer);
 
-
-
-
     const locationContainer = document.createElement('div');
     locationContainer.className = 'job-listing-detail-element';
 
-    
     const locationIcon = document.createElement('img');
     locationIcon.className = 'emoji-container';
     locationIcon.src = 'images/location.svg'; 
@@ -688,11 +648,8 @@ const createJobListing = (jobDetail) => {
     locationContainer.appendChild(locationLink);
     detailsContainer.appendChild(locationContainer);
 
-
-
     const personJobContainer = document.createElement('div');
     personJobContainer.className = 'job-listing-detail-element';
-
 
     const personEmoji = document.createElement('img'); 
     personEmoji.className = 'emoji-container';
@@ -702,29 +659,23 @@ const createJobListing = (jobDetail) => {
     personEmoji.height = '15';
     personJobContainer.appendChild(personEmoji);
 
-
     const personLink = document.createElement('a');
     personLink.textContent = `${jobDetail.personName} (${jobDetail.personjobTitle})`;
     personLink.href = jobDetail.profileUrl;
     personLink.target = '_blank';
     personJobContainer.appendChild(personLink);
 
-
     detailsContainer.appendChild(personJobContainer);
 
-  
     jobListingElement.appendChild(detailsContainer);
 
     return jobListingElement;
 };
 
-
-
 function convertToCSV(objArray) {
     const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
     let str = '';
 
-    
     const columnNames = [
         "Company",
         "Job",
@@ -753,7 +704,6 @@ function convertToCSV(objArray) {
 
     return str;
 }
-
 
 function triggerDownload(csvContent, fileName) {
     const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csvContent);
