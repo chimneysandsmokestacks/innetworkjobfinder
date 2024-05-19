@@ -1,4 +1,4 @@
-var DEBUG = true;
+var DEBUG = false;
 
 if (DEBUG) {
     console.log("Content script started.");
@@ -11,7 +11,7 @@ if (typeof currentURL === 'undefined') {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (typeof currentURL === "undefined") {
-        currentURL = window.location.href; // Initialize currentURL if it's undefined
+        currentURL = window.location.href; 
     }
     if (DEBUG) {console.log(`Message received on URL: ${currentURL}`);}
     if (message.action === "setCurrentIndex" && currentURL.includes('/search/results/')) {
@@ -24,7 +24,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     }
 });
-
 
 function sendPauseMessageToBackground(duration) {
     sendMessageToBackground({
@@ -48,20 +47,18 @@ function sendMessageToBackground(message) {
 }
 
 function randomPause(callback) {
-    const randomTime = Math.floor(Math.random() * 4000) + 4000; // Random time between 4 and 8 seconds
+    const randomTime = Math.floor(Math.random() * 4000) + 4000; 
     const seconds = (randomTime / 1000).toFixed(2);
     sendPauseMessageToBackground(seconds);
     setTimeout(callback, randomTime);
 }
 
 function extractCompanyNameFromProfile(companyLink) {
-    // Tries to find the company name from the known index after the company logo
+
     const jobTitleElements = document.querySelectorAll('div.display-flex.flex-wrap.align-items-center.full-height');
     let companyElementIndex = Array.from(jobTitleElements).indexOf(companyLink.closest('div.display-flex.flex-wrap.align-items-center.full-height'));
     if (DEBUG) {console.log("Index of the company logo element:", companyElementIndex);}
 
-
-    // We'll collect possible company names from the first two elements after the company logo
     let possibleCompanyNames = [];
     for (let i = 1; i <= 2; i++) {
         if (companyElementIndex + i < jobTitleElements.length) {
@@ -78,7 +75,6 @@ function extractCompanyNameFromProfile(companyLink) {
         }
     }
 
-    // Also check the first and second 'span.t-14.t-normal > span[aria-hidden="true"]' elements after the company logo
     const alternativeElements = document.querySelectorAll('span.t-14.t-normal > span[aria-hidden="true"]');
     for (let i = 1; i <= 2; i++) {
         const alternativeElementIndex = companyElementIndex + i;
@@ -86,7 +82,7 @@ function extractCompanyNameFromProfile(companyLink) {
             const alternativeElement = alternativeElements[alternativeElementIndex];
             if (alternativeElement) {
                 let companyName = alternativeElement.innerText.trim();
-                // Truncate the companyName at the first dot
+
                 companyName = companyName.includes('·') ? companyName.split('·')[0].trim() : companyName;
                 if (DEBUG) {console.log(`Alternative element found at +${i} from company logo, truncated name:`, companyName);}
                 possibleCompanyNames.push(companyName);
@@ -98,11 +94,8 @@ function extractCompanyNameFromProfile(companyLink) {
         }
     }
 
-    // Return the possible company names if any are found, or "Unknown" if none are found
     return possibleCompanyNames.length > 0 ? possibleCompanyNames : ["Unknown Company"];
 }
-
-
 
 function handleProfilePage() {
     waitForElement('a[data-field="experience_company_logo"]', companyLink => {
@@ -110,20 +103,17 @@ function handleProfilePage() {
             scrollToElement('a[data-field="experience_company_logo"]');
             setTimeout(() => {
 
-                //extract person's name
                 const nameElement = document.querySelector('h1.text-heading-xlarge');
                 const personName = nameElement ? nameElement.innerText.trim() : "Unknown Name";
                 if (DEBUG) {
                     console.log('Extracted Person Name:', personName);
                 }
 
-                // Extract list of potential company names using the helper function
                 const companyNames = extractCompanyNameFromProfile(companyLink);
                 if (DEBUG) {
                     console.log('Company names extracted from profile:', companyNames.join(', '));
                 }
 
-                //get recently checked companies and known employees
                 chrome.storage.local.get(['recentlyCheckedCompanies', 'knownEmployees'], data => {
                     const recentlyCheckedCompanies = data.recentlyCheckedCompanies || [];
                     let knownEmployees = data.knownEmployees || [];
@@ -137,8 +127,8 @@ function handleProfilePage() {
                                 const timeDiff = Date.now() - new Date(comp.timestamp).getTime();
                                 if (timeDiff <= 43200000) {
                                     matchedCompanyName = name;
-                                    const hours = Math.floor(timeDiff / 3600000); // 1 hour = 3600000 ms
-                                    const minutes = Math.floor((timeDiff % 3600000) / 60000); // 1 minute = 60000 ms
+                                    const hours = Math.floor(timeDiff / 3600000); 
+                                    const minutes = Math.floor((timeDiff % 3600000) / 60000); 
                                     const timeDiffDisplay = `${hours} hours and ${minutes} minutes`;
                                     sendMessageToBackground({
                                         action: "logInfo",
@@ -148,8 +138,8 @@ function handleProfilePage() {
                                     skipDetailedSearch = true;
                                     return true;
                                 } else {
-                                    const hours = Math.floor(timeDiff / 3600000); // 1 hour = 3600000 ms
-                                    const minutes = Math.floor((timeDiff % 3600000) / 60000); // 1 minute = 60000 ms
+                                    const hours = Math.floor(timeDiff / 3600000); 
+                                    const minutes = Math.floor((timeDiff % 3600000) / 60000); 
                                     const timeDiffDisplay = `${hours} hours and ${minutes} minutes`;
                                     if (DEBUG) {
                                         console.log(`Company '${name}' found in storage but last checked more than 12 hours ago. Time since last check: ${timeDiffDisplay}.`);
@@ -163,7 +153,6 @@ function handleProfilePage() {
                         console.log(`Compared against ${recentlyCheckedCompanies.length} companies, skip detailed search: ${skipDetailedSearch}`);
                     }
 
-                    // Update knownEmployees regardless of whether we skip or not
                     knownEmployees.push({
                         personName: personName,
                         personURL: window.location.href,
@@ -187,8 +176,6 @@ function handleProfilePage() {
                         });
                     }
 
-
-                    // if company name has not been seen prepare to navigate to jobs page
                     else {
                         if (DEBUG) {
                             console.log("Sending message to setNavigatedByExtensionFlag");
@@ -206,16 +193,13 @@ function handleProfilePage() {
                             flag: false
                         });
 
-                        // Extract the person's job title using a relative index
                         const jobTitleElements = document.querySelectorAll('div.display-flex.flex-wrap.align-items-center.full-height');
-                        const companyElementIndex = Array.from(jobTitleElements).indexOf(companyLink.closest('div.display-flex.flex-wrap.align-items-center.full-height')) + 3; // Ensure correct offset
+                        const companyElementIndex = Array.from(jobTitleElements).indexOf(companyLink.closest('div.display-flex.flex-wrap.align-items-center.full-height')) + 3; 
                         const jobTitleElement = jobTitleElements[companyElementIndex];
                         const personjobTitle = jobTitleElement ? jobTitleElement.querySelector('span[aria-hidden="true"]').innerText.trim() : "Unknown Title";
                         if (DEBUG) {
                             console.log('Extracted Job Title:', personjobTitle);
                         }
-
-
 
                         chrome.storage.local.set({
                             profileUrl: window.location.href,
@@ -232,7 +216,7 @@ function handleProfilePage() {
                         });
                     }
                 });
-            }, 1000); // Delay for the UI to update
+            }, 1000); 
         } else {
             if (DEBUG) {
                 console.log("No company link found on profile page.");
@@ -241,25 +225,22 @@ function handleProfilePage() {
                 action: "closeCurrentTab"
             });
         }
-    }, 0); // passes index 0 to waitforelement so that waitforelement only returns one (the first one)
+    }, 0); 
 }
 
-
 function waitForElement(selector, callback, index = null, timeout = 3000) {
-    // Log whether an index has been received
+
     if (index !== null) {
         if (DEBUG) {
             console.log(`Received index number: ${index}`);
         }
     } else {
-        //    if (DEBUG) {console.log("No index received");}
+
     }
-    // if (DEBUG) {console.log(`Checking for elements with selector: ${selector}.`);}
+
     const interval = setInterval(() => {
         const elements = document.querySelectorAll(selector);
-        // if (DEBUG) {console.log(`Found ${elements.length} elements matching selector: ${selector}.`);}
 
-        // Check if a specific index is requested and if the element at that index exists
         if (index !== null && elements.length > index) {
             if (DEBUG) {
                 console.log(`Element at index ${index} found: ${selector}, href: ${elements[index].href}`);
@@ -268,26 +249,21 @@ function waitForElement(selector, callback, index = null, timeout = 3000) {
             clearTimeout(failSafeTimeout);
             callback(elements[index]);
         } else if (index === null && elements.length > 0) {
-            // If no specific index is requested, use the first found element
-            //  if (DEBUG) {console.log(`Element found: ${selector}`);}
-            //  if (DEBUG) {console.log(`Executing callback for the first element matching selector: ${selector}`);}
+
             clearInterval(interval);
             clearTimeout(failSafeTimeout);
             callback(Array.from(elements));
         } else {
-            // If no elements are found, log that the element is not found yet
-            // if (DEBUG) {console.log(`Elements matching selector: '${selector}' not found at this time.`);}
+
         }
     }, 1000);
 
-    // Set a failsafe timeout in case the element is never found
     const failSafeTimeout = setTimeout(() => {
-        //   if (DEBUG) {console.log(`Timeout reached without finding element for selector: ${selector}`);}
+
         clearInterval(interval);
-        callback(null); // Indicate that no element was found
+        callback(null); 
     }, timeout);
 }
-
 
 function handleCompanyPage() {
     chrome.storage.local.get(['profileUrl', 'personName', 'personjobTitle', 'jobTitleSetByUser', 'recentlyCheckedCompanies', 'knownEmployees'], (data) => {
@@ -315,36 +291,33 @@ function handleCompanyPage() {
             }
         };
 
-        // Update the companyName for the current employee in knownEmployees
         if (data.knownEmployees && data.profileUrl) {
             let employeeExists = false;
-            // Iterate over knownEmployees to find and update the existing entry
+
             knownEmployees.forEach(employee => {
                 if (employee.personURL === data.profileUrl) {
                     employeeExists = true;
                     employee.companyName = companyName;
-                    employee.lastSeen = new Date().toISOString(); // Update last seen time if necessary
+                    employee.lastSeen = new Date().toISOString(); 
                     if (DEBUG) {
                         console.log(`Updated company name for ${employee.personName} to ${companyName} in storage.`);
                     }
                 }
             });
 
-            // If no existing employee was found, add a new one
             if (!employeeExists) {
                 knownEmployees.push({
                     personName: data.personName,
                     personURL: data.profileUrl,
                     companyName: companyName,
                     discoveredAt: new Date().toISOString(),
-                    lastSeen: new Date().toISOString() // This ensures the new entry has a last seen time
+                    lastSeen: new Date().toISOString() 
                 });
                 if (DEBUG) {
                     console.log('Added new employee:', data.personName);
                 }
             }
 
-            // Save the updated knownEmployees back to storage
             chrome.storage.local.set({
                 knownEmployees
             }, () => {
@@ -367,7 +340,6 @@ function handleCompanyPage() {
 
     });
 }
-
 
 function extractJobFromCompanyPage() {
     waitForElement('.job-card-square__title', jobCards => {
@@ -414,7 +386,7 @@ function extractJobFromCompanyPage() {
                         updatedCompanies.push({
                             name: companyName,
                             timestamp: Date.now()
-                        }); // Assuming companyName is meant to be jobLocation
+                        }); 
                         chrome.storage.local.set({
                             'recentlyCheckedCompanies': updatedCompanies
                         }, () => {
@@ -431,7 +403,6 @@ function extractJobFromCompanyPage() {
                                 console.log(`Found matching job: ${jobTitleText}, located in ${jobLocation} - URL: ${jobUrl}`);
                             }
 
-
                             const messagePayload = {
                                 action: "foundJob",
                                 companyLink: data.companyLink,
@@ -446,7 +417,7 @@ function extractJobFromCompanyPage() {
                             sendMessageToBackground(messagePayload);
                         }
                     });
-                    // Close the tab after all job cards have been processed
+
                     randomPause(() => {
                         sendMessageToBackground({
                             action: "closeCurrentTab"
@@ -458,15 +429,13 @@ function extractJobFromCompanyPage() {
     });
 }
 
-
-
 function scrollToElement(selector) {
     const element = document.querySelector(selector);
     if (element) {
         element.scrollIntoView({
-            behavior: 'smooth', // Scroll smoothly to the element
-            block: 'center', // Vertical alignment of the element within the viewport
-            inline: 'nearest' // Horizontal alignment of the element within the viewport
+            behavior: 'smooth', 
+            block: 'center', 
+            inline: 'nearest' 
         });
         if (DEBUG) {
             console.log(`Scrolled smoothly to the element with selector: ${selector}`);
@@ -478,21 +447,18 @@ function scrollToElement(selector) {
     }
 }
 
-
 function extractCompanyNameFromSearchPage(index) {
-    // Find all profile headline elements
+
     const summaryElements = document.querySelectorAll('.entity-result__summary');
     if (DEBUG) {
         console.log(`Total summary elements found: ${summaryElements.length}`);
     }
-    // if (DEBUG) {console.log(`extractCompanyNameFromSearchPage says: Index ${index} received from openNextProfile.`);}
+
     if (index >= 0 && index < summaryElements.length) {
-        // Find the bolded company name within the headline, if it exists
-        // if (DEBUG) {console.log('Targeted summary element:', summaryElements[index]);}
+
         const strongTag = summaryElements[index].querySelector('strong');
         const companyName = strongTag ? strongTag.innerText.trim() : null;
-        // if (DEBUG) {console.log("extractCompanyNameFromSearchPage says: Index received from openNextProfile and processing:", index);}
-        //  if (DEBUG) {console.log(`Extracted company name from headline at index ${index}: ${companyName}`);}
+
         return companyName;
     }
 
@@ -502,48 +468,44 @@ function extractCompanyNameFromSearchPage(index) {
     return null;
 }
 
-
 function scanProfileElementsAndStore(callback) {
-    // Smoothly scroll to the bottom of the page
+
     window.scroll({
         top: document.body.scrollHeight,
         left: 0,
         behavior: 'smooth'
     });
 
-    // Wait for the page to stabilize after scrolling down
     setTimeout(() => {
-        // Smoothly scroll back to the top of the page
+
         window.scroll({
             top: 0,
             left: 0,
             behavior: 'smooth'
         });
 
-        // Wait for the page to stabilize after scrolling up
         setTimeout(() => {
-            // Fetch the knownEmployees from storage
+
             chrome.storage.local.get('knownEmployees', function(storageResult) {
                 const knownEmployees = storageResult.knownEmployees || [];
                 const updateEmployees = {};
                 const toSend = [];
                 const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                // Log the number of known profiles fetched
+
                 if (DEBUG) {
                     console.log(`Fetched ${Object.keys(knownEmployees).length} known profiles from storage.`);
                 }
 
-                // Parse profile links after the page content has likely loaded
                 const allProfileLinks = Array.from(document.querySelectorAll('.entity-result__title-text a.app-aware-link'))
-                    .map(link => link.href.split('?')[0].replace(/\/$/, '')) // Normalizes the URL and removes slashes
+                    .map(link => link.href.split('?')[0].replace(/\/$/, '')) 
                     .filter(link => link.includes('/in/'));
-                // Log how many profile links were parsed
+
                 if (DEBUG) {
                     console.log(`Parsed ${allProfileLinks.length} profile links from the page.`);
                 }
                 if (DEBUG) {
                     console.log('Profile Links:', allProfileLinks);
-                } // Log parsed URLs
+                } 
 
                 let matchCount = 0;
                 allProfileLinks.forEach(normalizedUrl => {
@@ -552,14 +514,13 @@ function scanProfileElementsAndStore(callback) {
                         if (knownEmployees.hasOwnProperty(key)) {
                             const employee = knownEmployees[key];
                             const storedUrl = employee.personURL;
-                            if (storedUrl) { // Ensure storedUrl is not undefined
-                                const normalizedStoredUrl = storedUrl.replace(/\/$/, ''); // Normalize stored URL
+                            if (storedUrl) { 
+                                const normalizedStoredUrl = storedUrl.replace(/\/$/, ''); 
                                 if (normalizedStoredUrl === normalizedUrl) {
                                     const currentDateTime = new Date().toISOString();
 
-                                    // Update lastSeen if it exists, otherwise check discoveredAt
                                     if (employee.lastSeen || new Date(employee.discoveredAt) >= oneWeekAgo) {
-                                        employee.lastSeen = currentDateTime; // Update lastSeen to current time
+                                        employee.lastSeen = currentDateTime; 
                                         updateEmployees[key] = employee;
                                         found = true;
                                         matchCount++;
@@ -570,30 +531,27 @@ function scanProfileElementsAndStore(callback) {
                         }
                     }
                     if (!found) {
-                        toSend.push(normalizedUrl); // Add URL to send if not found
+                        toSend.push(normalizedUrl); 
                     }
                 });
                 if (DEBUG) {
                     console.log(`Found ${matchCount} matches between parsed links and known employees.`);
                 }
 
-                // Define the message to be sent if there are profiles to store
                 if (toSend.length > 0) {
                     const message = {
                         action: "storeProfileLinks",
                         profileLinks: toSend
                     };
 
-                    // Log the message before sending it
                     if (DEBUG) {
                         console.log("Sending to background:", message);
                     }
 
-                    // Store the scanned profile links in local storage associated with the tab ID
                     chrome.runtime.sendMessage(message, function(response) {
                         if (response && response.status === "Profile links stored successfully") {
                             if (typeof callback === "function") {
-                                callback(); // Call the callback function
+                                callback(); 
                             }
                         } else {
                             if (DEBUG) {
@@ -606,19 +564,16 @@ function scanProfileElementsAndStore(callback) {
                         console.log("No new profiles to store or update needed.");
                     }
                     if (typeof callback === "function") {
-                        callback(); // Still call the callback function
+                        callback(); 
                     }
                 }
             });
-        }, 2000); // Wait sufficient time after scrolling back to the top
-    }, 2000); // Wait sufficient time after scrolling to the bottom
+        }, 2000); 
+    }, 2000); 
 }
 
-
-
-
 function openNextProfile(index, retryCount = 0) {
-    const maxRetryCount = 2; // Limit the number of retries to 2
+    const maxRetryCount = 2; 
     if (index == null || isNaN(index)) {
         if (DEBUG) {
             console.error("Invalid tab ID or index:", index);
@@ -671,7 +626,7 @@ function openNextProfile(index, retryCount = 0) {
                         if (DEBUG) {
                             console.log("No profile link found at index, retrying...", retryCount + 1);
                         }
-                        openNextProfile(index, retryCount + 1); // Retry the function
+                        openNextProfile(index, retryCount + 1); 
                     } else {
                         sendMessageToBackground({
                             action: "clearProfileLinks"
@@ -703,11 +658,9 @@ function openNextProfile(index, retryCount = 0) {
     });
 }
 
-
-
 function incrementIndexAndContinue(currentIndex) {
     const nextIndex = currentIndex + 1;
-    // Send a message to the background script to update the index
+
     chrome.runtime.sendMessage({
         action: "updateIndex",
         newIndex: nextIndex
@@ -716,7 +669,7 @@ function incrementIndexAndContinue(currentIndex) {
             if (DEBUG) {
                 console.log(`Index incremented to ${nextIndex}, continuing to next profile.`);
             }
-            openNextProfile(response.newIndex); // Recursively call to continue with the next profile
+            openNextProfile(response.newIndex); 
         } else {
             if (DEBUG) {
                 console.error("Failed to update index via background script.");
@@ -735,15 +688,13 @@ function clickNextPage() {
         console.log(`Scrolling to pagination selector bottom of page.`);
     }
 
-    // Allow some time for the page to react and the elements to be properly visible
     setTimeout(() => {
-        // Find all page buttons
+
         const pageButtons = document.querySelectorAll('ul.artdeco-pagination__pages > li > button');
         if (DEBUG) {
             console.log(`Page buttons found: ${pageButtons.length}`);
         }
 
-        // Find the currently selected page button
         const currentPageButton = Array.from(pageButtons).find(button => button.getAttribute('aria-current') === 'true');
 
         if (currentPageButton) {
@@ -751,9 +702,8 @@ function clickNextPage() {
                 console.log(`Current page button found: ${currentPageButton.innerText}`);
             }
 
-            // Use a slight delay after initial scroll to allow the DOM to update
             setTimeout(() => {
-                // Re-find the current page button and calculate the next page button
+
                 const refreshedPageButtons = document.querySelectorAll('ul.artdeco-pagination__pages > li > button');
                 if (DEBUG) {
                     console.log(`Refreshed page buttons found: ${refreshedPageButtons.length}`);
@@ -764,7 +714,7 @@ function clickNextPage() {
                 const nextPageButton = refreshedPageButtons[nextPageIndex];
 
                 if (nextPageButton && !nextPageButton.disabled) {
-                    // Log the next page number to be clicked
+
                     const nextPageNumber = nextPageButton.getAttribute('aria-label').match(/\d+/)[0];
                     if (DEBUG) {
                         console.log(`Next page button found: ${nextPageNumber}`);
@@ -775,7 +725,7 @@ function clickNextPage() {
                     });
                     chrome.runtime.sendMessage({
                         action: "updateIndex",
-                        newIndex: 0 // Reset the index for the new page
+                        newIndex: 0 
                     }, response => {
                         if (response && response.status === 'Index updated') {
                             index = response.newIndex;
@@ -783,7 +733,6 @@ function clickNextPage() {
                                 console.log(`Index updated to ${index}, navigating to next page:`, nextPageNumber);
                             }
 
-                            // Upon successful index update, click the next page button
                             nextPageButton.click();
                             if (DEBUG) {
                                 console.log(`Clicked to navigate to page number: ${nextPageNumber}`);
@@ -800,20 +749,17 @@ function clickNextPage() {
                         console.log('No next page button available or it is disabled.');
                     }
                 }
-            }, 2000); // Wait for 2 seconds to ensure the scroll has completed and elements are interactable
+            }, 2000); 
         } else {
             if (DEBUG) {
                 console.log('Current page button not found.');
             }
         }
-    }, 2000); // Initial delay after scrolling to ensure elements load
+    }, 2000); 
 }
 
-
-
-// if (DEBUG) {console.log(`Evaluating URL for function routing: ${currentURL}`);}
 if (currentURL.includes('/search/results/')) {
-    // Send a message to the background script to get the current index
+
     chrome.runtime.sendMessage({
         action: "getCurrentIndex"
     }, (response) => {
@@ -839,7 +785,7 @@ if (currentURL.includes('/search/results/')) {
         console.log("It's a company page. Initiating handleCompanyPage");
     }
 } else if (currentURL.includes('/school/')) {
-    handleCompanyPage(); // This should probably be handleSchoolPage() if it differs from company handling.
+    handleCompanyPage(); 
     if (DEBUG) {
         console.log("It's a school page. Initiating handleCompanyPage");
     }
